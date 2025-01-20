@@ -9,9 +9,7 @@ import '../services/storeService.dart';
 import '../widgets/radiusSlider.dart';
 import '../widgets/storeListWidget.dart';
 import '../widgets/StoreDetailWidget.dart';
-// ignore: depend_on_referenced_packages
-import 'package:flutter_svg/flutter_svg.dart';
-
+import '../utils/buildMarkers.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -81,11 +79,14 @@ class _MapScreenState extends State<MapScreen> {
       final newLocation = LatLng(position.latitude, position.longitude);
 
       setState(() {
-        currentLocation = newLocation; // Update location
-        userHeading = position.heading; // Update heading
+        currentLocation = newLocation; // Cập nhật vị trí
+        userHeading = position.heading; // Cập nhật hướng
       });
 
-      _checkIfOnRoute(newLocation); // Check route
+      // Di chuyển bản đồ đến vị trí mới
+      _mapController.move(newLocation, 20.0);
+
+      _checkIfOnRoute(newLocation); // Kiểm tra vị trí trên tuyến đường
     });
   }
 
@@ -99,7 +100,7 @@ class _MapScreenState extends State<MapScreen> {
         nextPoint,
       );
 
-      if (distanceToNextPoint < 20) {
+      if (distanceToNextPoint < 5) {
         setState(() {
           routeCoordinates.removeAt(0);
         });
@@ -213,13 +214,24 @@ class _MapScreenState extends State<MapScreen> {
                           },
                         ),
                       MarkerLayer(
-                        markers: _buildMarkers(),
+                        markers: buildMarkers(
+                          currentLocation: currentLocation,
+                          isNavigating: isNavigating,
+                          userHeading: userHeading,
+                          navigatingStore: navigatingStore,
+                          filteredStores: filteredStores,
+                          onStoreTap: (store) {
+                            setState(() {
+                              selectedStore = store;
+                            });
+                          },
+                        ),
                       ),
                     ],
                   ),
                   Positioned(
                     bottom: 120.0,
-                    right: 20.0,
+                    right: 33.0,
                     child: Column(
                       children: [
                         // Nút "Bắt đầu đi"
@@ -323,7 +335,11 @@ class _MapScreenState extends State<MapScreen> {
                           child: FloatingActionButton(
                             onPressed: () {
                               if (currentLocation != null) {
-                                _mapController.move(currentLocation!, 14.0);
+                                if(isNavigating) {
+                                  _mapController.move(currentLocation!, 20.0);
+                                } else {
+                                  _mapController.move(currentLocation!, 14.0);
+                                }
                               }
                             },
                             child: const Icon(Icons.my_location),
@@ -387,66 +403,5 @@ class _MapScreenState extends State<MapScreen> {
               ),
       ),
     );
-  }
-
-  List<Marker> _buildMarkers() {
-    List<Marker> markers = [];
-
-    // Marker cho vị trí của người dùng
-    if (currentLocation != null) {
-      markers.add(Marker(
-        width: 80.0,
-        height: 80.0,
-        point: currentLocation!,
-        child: isNavigating && userHeading != null
-            ? Transform.rotate(
-                angle: (userHeading! + 90) * (3.14159265359 / 180),
-                child: SvgPicture.asset(
-                  'assets/location-arrow.svg', // Custom SVG cho điều hướng
-                  width: 40.0,
-                  height: 40.0,
-                ),
-              )
-            : const Icon(
-                Icons.my_location,
-                color: Colors.green,
-                size: 40.0,
-              ),
-      ));
-    }
-
-    // Marker cho cửa hàng được chọn khi đang điều hướng
-    if (isNavigating) {
-      markers.add(Marker(
-        width: 80.0,
-        height: 80.0,
-        point: LatLng(
-          navigatingStore!['coordinates']['lat'],
-          navigatingStore!['coordinates']['lng'],
-        ),
-        child: const Icon(Icons.location_on, color: Colors.red, size: 40.0),
-      ));
-    }
-
-    // Marker cho tất cả các cửa hàng (chỉ khi không điều hướng)
-    if (!isNavigating) {
-      markers.addAll(filteredStores.map((store) {
-        final coordinates = store['coordinates'];
-        return Marker(
-          width: 80.0,
-          height: 80.0,
-          point: LatLng(coordinates['lat'], coordinates['lng']),
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                selectedStore = store;
-              });
-            },
-            child: const Icon(Icons.location_on, color: Colors.red, size: 40.0),
-          ),
-        );
-      }).toList());
-    } 
-    return markers;
   }
 }
