@@ -49,6 +49,9 @@ class _MapScreenState extends State<MapScreen> {
       allStores = storeData;
       updateFilteredStores();
     });
+
+    // Bắt đầu theo dõi vị trí ngay khi tải dữ liệu
+    _trackUserLocationAndDirection();
   }
 
   void updateFilteredStores() {
