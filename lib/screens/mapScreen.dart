@@ -9,8 +9,7 @@ import '../services/storeService.dart';
 import '../widgets/radiusSlider.dart';
 import '../widgets/storeListWidget.dart';
 import '../widgets/StoreDetailWidget.dart';
-import '../utils/buildMarkers.dart';
-import '../utils/dashPolyline.dart';
+import '../widgets/flutterMapWidget.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -49,9 +48,6 @@ class _MapScreenState extends State<MapScreen> {
       allStores = storeData;
       updateFilteredStores();
     });
-
-    // Bắt đầu theo dõi vị trí ngay khi tải dữ liệu
-    _trackUserLocationAndDirection();
   }
 
   void updateFilteredStores() {
@@ -88,10 +84,10 @@ class _MapScreenState extends State<MapScreen> {
         userHeading = position.heading; // Cập nhật hướng
       });
 
-      // Di chuyển bản đồ đến vị trí mới
-      _mapController.move(newLocation, 20.0);
-
-      _checkIfOnRoute(newLocation); // Kiểm tra vị trí trên tuyến đường
+      if (isNavigating) {
+        _mapController.move(newLocation, 20.0); // Di chuyển bản đồ
+        _checkIfOnRoute(newLocation); // Kiểm tra vị trí trên tuyến đường
+      }
     });
   }
 
@@ -187,63 +183,22 @@ class _MapScreenState extends State<MapScreen> {
             ? const Center(child: CircularProgressIndicator())
             : Stack(
                 children: [
-                  FlutterMap(
+                  FlutterMapWidget(
                     mapController: _mapController,
-                    options: MapOptions(
-                      initialCenter: currentLocation!,
-                      initialZoom: 14.0,
-                    ),
-                    children: [
-                      TileLayer(
-                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      ),
-                      PolylineLayer(
-                        polylines: routeType == 'walking'
-                            ? generateDashedPolyline(routeCoordinates)
-                            : [
-                                Polyline(
-                                  points: routeCoordinates,
-                                  strokeWidth: 4.0,
-                                  color: Colors.blue, // Nét liền màu xanh cho đi xe
-                                ),
-                              ],
-                      ),
-                      if (!isNavigating)
-                        TweenAnimationBuilder<double>(
-                          tween: Tween<double>(begin: radius, end: radius),
-                          duration: const Duration(milliseconds: 300),
-                          builder: (context, value, child) {
-                            return CircleLayer(
-                              circles: [
-                                CircleMarker(
-                                  point: currentLocation!,
-                                  // ignore: deprecated_member_use
-                                  color: Colors.blue.withOpacity(0.3),
-                                  borderStrokeWidth: 1.0,
-                                  borderColor: Colors.blue,
-                                  useRadiusInMeter: true,
-                                  radius: value,
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      MarkerLayer(
-                        markers: buildMarkers(
-                          currentLocation: currentLocation,
-                          isNavigating: isNavigating,
-                          userHeading: userHeading,
-                          navigatingStore: navigatingStore,
-                          filteredStores: filteredStores,
-                          onStoreTap: (store) {
-                            setState(() {
-                              selectedStore = store;
-                            });
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
+                    currentLocation: currentLocation!,
+                    radius: radius,
+                    isNavigating: isNavigating,
+                    userHeading: userHeading,
+                    navigatingStore: navigatingStore,
+                    filteredStores: filteredStores,
+                    routeCoordinates: routeCoordinates,
+                    routeType: routeType,
+                    onStoreTap: (store) {
+                      setState(() {
+                        selectedStore = store;
+                      });
+                    },
+                  ),  
                   Positioned(
                     bottom: 150.0,
                     right: 33.0,

@@ -14,4 +14,5 @@ class StoreService {
       throw Exception('Failed to fetch stores data');
     }
   }
+  
 }
