@@ -133,40 +133,19 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> updateRouteToStore(LatLng destination) async {
     if (currentLocation != null) {
-      // Sử dụng hàm fetchRouteForMapScreen
-      final route = await RouteService.fetchRouteForMapScreen(
-        currentLocation!,
-        destination,
-        routeType, // Mặc định là driving, có thể thay đổi thành 'walking'
+      await RouteService.updateRouteToStore(
+        currentLocation: currentLocation!,
+        destination: destination,
+        routeType: routeType,
+        mapController: _mapController,
+        updateRouteCoordinates: (route) {
+          setState(() {
+            routeCoordinates = route;
+            navigatingStore = selectedStore;
+            selectedStore = null;
+          });
+        },
       );
-      setState(() {
-        routeCoordinates = route;
-        navigatingStore = selectedStore;
-        selectedStore = null; // Ẩn StoreDetail sau khi vẽ tuyến đường
-      });
-
-      // Tính toán trung tâm và mức zoom (giữ nguyên logic cũ)
-      final double centerLat = (currentLocation!.latitude + destination.latitude) / 2;
-      final double centerLng = (currentLocation!.longitude + destination.longitude) / 2;
-
-      final double distance = Distance().as(
-        LengthUnit.Kilometer,
-        currentLocation!,
-        destination,
-      );
-
-      double zoomLevel;
-      if (distance < 1) {
-        zoomLevel = 16.0;
-      } else if (distance < 5) {
-        zoomLevel = 14.0;
-      } else if (distance < 10) {
-        zoomLevel = 12.0;
-      } else {
-        zoomLevel = 10.0;
-      }
-
-      _mapController.move(LatLng(centerLat, centerLng), zoomLevel);
     }
   }
 
