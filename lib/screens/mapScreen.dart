@@ -10,6 +10,7 @@ import '../widgets/radiusSlider.dart';
 import '../widgets/storeListWidget.dart';
 import '../widgets/StoreDetailWidget.dart';
 import '../utils/buildMarkers.dart';
+import '../utils/dashPolyline.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -32,6 +33,7 @@ class _MapScreenState extends State<MapScreen> {
   bool isNavigating = false; // Xác định chế độ điều hướng
   double? userHeading; // Hướng của người dùng
   Map<String, dynamic>? navigatingStore;
+  String routeType = 'driving';
 
   @override
   void initState() {
@@ -105,7 +107,12 @@ class _MapScreenState extends State<MapScreen> {
           routeCoordinates.removeAt(0);
         });
       } else {
-        final newRoute = await RouteService.fetchRoute(userLocation, routeCoordinates.last);
+        // Sử dụng fetchRouteForMapScreen để lấy tuyến đường mới
+        final newRoute = await RouteService.fetchRouteForMapScreen(
+          userLocation,
+          routeCoordinates.last,
+          routeType, // Có thể thay đổi thành 'walking' nếu cần
+        );
         setState(() {
           routeCoordinates = newRoute;
         });
@@ -127,18 +134,22 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> updateRouteToStore(LatLng destination) async {
     if (currentLocation != null) {
-      final route = await RouteService.fetchRoute(currentLocation!, destination);
+      // Sử dụng hàm fetchRouteForMapScreen
+      final route = await RouteService.fetchRouteForMapScreen(
+        currentLocation!,
+        destination,
+        routeType, // Mặc định là driving, có thể thay đổi thành 'walking'
+      );
       setState(() {
         routeCoordinates = route;
         navigatingStore = selectedStore;
         selectedStore = null; // Ẩn StoreDetail sau khi vẽ tuyến đường
       });
 
-      // Tính toán trung tâm giữa vị trí hiện tại và đích
+      // Tính toán trung tâm và mức zoom (giữ nguyên logic cũ)
       final double centerLat = (currentLocation!.latitude + destination.latitude) / 2;
       final double centerLng = (currentLocation!.longitude + destination.longitude) / 2;
 
-      // Xác định mức zoom dựa trên khoảng cách giữa hai điểm
       final double distance = Distance().as(
         LengthUnit.Kilometer,
         currentLocation!,
@@ -147,16 +158,15 @@ class _MapScreenState extends State<MapScreen> {
 
       double zoomLevel;
       if (distance < 1) {
-        zoomLevel = 16.0; // Giảm mức zoom
+        zoomLevel = 16.0;
       } else if (distance < 5) {
-        zoomLevel = 14.0; // Giảm mức zoom
+        zoomLevel = 14.0;
       } else if (distance < 10) {
         zoomLevel = 12.0;
       } else {
-        zoomLevel = 10.0; // Giảm mức zoom xa hơn
+        zoomLevel = 10.0;
       }
 
-      // Di chuyển bản đồ đến vị trí trung tâm và áp dụng mức zoom
       _mapController.move(LatLng(centerLat, centerLng), zoomLevel);
     }
   }
@@ -185,13 +195,15 @@ class _MapScreenState extends State<MapScreen> {
                         urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       ),
                       PolylineLayer(
-                        polylines: [
-                          Polyline(
-                            points: routeCoordinates,
-                            strokeWidth: 4.0,
-                            color: Colors.blue,
-                          ),
-                        ],
+                        polylines: routeType == 'walking'
+                            ? generateDashedPolyline(routeCoordinates)
+                            : [
+                                Polyline(
+                                  points: routeCoordinates,
+                                  strokeWidth: 4.0,
+                                  color: Colors.blue, // Nét liền màu xanh cho đi xe
+                                ),
+                              ],
                       ),
                       if (!isNavigating)
                         TweenAnimationBuilder<double>(
@@ -230,10 +242,35 @@ class _MapScreenState extends State<MapScreen> {
                     ],
                   ),
                   Positioned(
-                    bottom: 120.0,
+                    bottom: 150.0,
                     right: 33.0,
                     child: Column(
                       children: [
+                        FloatingActionButton(
+                          onPressed: () async {
+                            setState(() {
+                              routeType = routeType == 'driving' ? 'walking' : 'driving';
+                            });
+
+                            // Cập nhật lại tuyến đường
+                            if (currentLocation != null && routeCoordinates.isNotEmpty) {
+                              final newRoute = await RouteService.fetchRouteForMapScreen(
+                                currentLocation!,
+                                routeCoordinates.last,
+                                routeType,
+                              );
+                              setState(() {
+                                routeCoordinates = newRoute;
+                              });
+                            }
+                          },
+                          heroTag: 'toggle_route_type',
+                          backgroundColor: routeType == 'driving' ? Colors.blue : Colors.green,
+                          child: Icon(
+                            routeType == 'driving' ? Icons.directions_car : Icons.directions_walk,
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
                         // Nút "Bắt đầu đi"
                         if (routeCoordinates.isNotEmpty && !isNavigating)
                           FloatingActionButton(
@@ -244,7 +281,9 @@ class _MapScreenState extends State<MapScreen> {
                               _startNavigation(); // Bắt đầu điều hướng
                             },
                             heroTag: 'start_navigation',
-                            child: const Icon(Icons.directions_walk),
+                            child: Icon(
+                              Icons.play_arrow,
+                            ),
                           ),
                         const SizedBox(height: 16.0),
 
