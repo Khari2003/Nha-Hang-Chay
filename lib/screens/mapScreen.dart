@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import '../services/locationService.dart';
 import '../services/routeService.dart';
 import '../services/storeService.dart';
+import '../services/trafficService.dart';
 import '../widgets/radiusSlider.dart';
 import '../widgets/storeListWidget.dart';
 import '../widgets/StoreDetailWidget.dart';
@@ -22,6 +23,7 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   LatLng? currentLocation;
   List<Map<String, dynamic>> allStores = [];
+  List<Map<String, dynamic>> traffic = [];
   List<Map<String, dynamic>> filteredStores = [];
   List<LatLng> routeCoordinates = [];
   double radius = 1000.0;
@@ -38,6 +40,7 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     fetchInitialData();
+    fetchTrafficDataForMap();
   }
 
   Future<void> fetchInitialData() async {
@@ -48,6 +51,14 @@ class _MapScreenState extends State<MapScreen> {
       allStores = storeData;
       updateFilteredStores();
     });
+  }
+
+  Future<void> fetchTrafficDataForMap() async {
+    final trafficData = await TrafficService.fetchTrafficData('Hà Nội');
+    setState(() {
+      traffic = trafficData;
+    });
+    print(traffic);
   }
 
   void updateFilteredStores() {
@@ -101,7 +112,7 @@ class _MapScreenState extends State<MapScreen> {
         nextPoint,
       );
 
-      if (distanceToNextPoint < 5) {
+      if (distanceToNextPoint < 1) {
         setState(() {
           routeCoordinates.removeAt(0);
         });
