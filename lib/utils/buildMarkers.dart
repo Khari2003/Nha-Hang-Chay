@@ -23,7 +23,7 @@ List<Marker> buildMarkers({
       point: currentLocation,
       child: isNavigating && userHeading != null
           ? Transform.rotate(
-              angle: (userHeading + 90) * (3.14159265359 / 180),
+              angle: (userHeading) * (3.14159265359 / 180),
               child: SvgPicture.asset(
                 'assets/location-arrow.svg', // Custom SVG for navigation
                 width: 40.0,

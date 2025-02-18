@@ -17,6 +17,7 @@ class FlutterMapWidget extends StatelessWidget {
   final List<LatLng> routeCoordinates;
   final String routeType;
   final Function(Map<String, dynamic>) onStoreTap;
+  final LatLng? searchedLocation;
 
   const FlutterMapWidget({
     required this.mapController,
@@ -29,6 +30,7 @@ class FlutterMapWidget extends StatelessWidget {
     required this.routeCoordinates,
     required this.routeType,
     required this.onStoreTap,
+    this.searchedLocation,
     super.key,
   });
 
@@ -42,7 +44,8 @@ class FlutterMapWidget extends StatelessWidget {
       ),
       children: [
         TileLayer(
-          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          subdomains: ['a', 'b', 'c'],
         ),
         PolylineLayer(
           polylines: routeType == 'walking'
@@ -51,7 +54,8 @@ class FlutterMapWidget extends StatelessWidget {
                   Polyline(
                     points: routeCoordinates,
                     strokeWidth: 4.0,
-                    color: Colors.blue,
+                    // ignore: deprecated_member_use
+                    color: Colors.blue.withOpacity(0.5),
                   ),
                 ],
         ),
@@ -75,15 +79,31 @@ class FlutterMapWidget extends StatelessWidget {
               );
             },
           ),
+        // Hiển thị marker
         MarkerLayer(
-          markers: buildMarkers(
-            currentLocation: currentLocation,
-            isNavigating: isNavigating,
-            userHeading: userHeading,
-            navigatingStore: navigatingStore,
-            filteredStores: filteredStores,
-            onStoreTap: onStoreTap,
-          ),
+          markers: [
+            ...buildMarkers(
+              currentLocation: currentLocation,
+              isNavigating: isNavigating,
+              userHeading: userHeading,
+              navigatingStore: navigatingStore,
+              filteredStores: filteredStores,
+              onStoreTap: onStoreTap,
+            ),
+
+            // Marker cho vị trí tìm kiếm
+            if (searchedLocation != null)
+              Marker(
+                width: 80.0,
+                height: 80.0,
+                point: searchedLocation!,
+                child: const Icon(
+                  Icons.location_pin,
+                  color: Colors.blue,
+                  size: 40.0,
+                ),
+              ),
+          ],
         ),
       ],
     );
