@@ -25,6 +25,7 @@ dependencies:
   flutter_dotenv: ^5.2.1
   flutter_svg: ^2.0.17
   sensors_plus: ^6.1.1
+  flutter_compass: ^0.8.1
 
 dev_dependencies:
   flutter_test:

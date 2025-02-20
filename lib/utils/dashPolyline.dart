@@ -35,7 +35,7 @@ List<Polyline> generateDashedPolyline(List<LatLng> coordinates) {
       dashedPolylines.add(
         Polyline(
           points: [segmentStart, segmentEnd],
-          strokeWidth: 4.0,
+          strokeWidth: 5.0,
           color: Colors.blue, // Màu đường nét đứt
         ),
       );

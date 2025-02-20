@@ -12,6 +12,7 @@ List<Marker> buildMarkers({
   required Map<String, dynamic>? navigatingStore,
   required List<Map<String, dynamic>> filteredStores,
   required void Function(Map<String, dynamic>) onStoreTap,
+  required double mapRotation,
 }) {
   List<Marker> markers = [];
 
@@ -21,9 +22,9 @@ List<Marker> buildMarkers({
       width: 80.0,
       height: 80.0,
       point: currentLocation,
-      child: isNavigating && userHeading != null
+      child: userHeading != null
           ? Transform.rotate(
-              angle: (userHeading) * (3.14159265359 / 180),
+              angle: (userHeading + mapRotation + 120) * (3.14159265359 / 180),
               child: SvgPicture.asset(
                 'assets/location-arrow.svg', // Custom SVG for navigation
                 width: 40.0,
