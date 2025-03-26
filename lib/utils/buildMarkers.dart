@@ -65,7 +65,15 @@ List<Marker> buildMarkers({
         point: LatLng(coordinates['lat'], coordinates['lng']),
         child: GestureDetector(
           onTap: () => onStoreTap(store),
-          child: const Icon(Icons.location_on, color: Colors.red, size: 40.0),
+          // child: const Icon(Icons.location_on, color: Colors.red, size: 40.0),
+          child: Transform.rotate(
+            angle: (mapRotation) * (3.14159265359 / 180),
+            child: const Icon(
+                Icons.location_on,
+                color: Colors.red,
+                size: 40.0,
+            ),
+          ),
         ),
       );
     }).toList());

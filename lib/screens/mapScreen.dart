@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+// import 'package:flutter_map_mbtiles/flutter_map_mbtiles.dart';
 import 'package:latlong2/latlong.dart';
 import '../services/locationService.dart';
 import '../services/routeService.dart';
@@ -101,7 +102,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         final distance = Distance().as(LengthUnit.Meter, previousLocation!, newLocation);
 
         // Nếu khoảng cách quá lớn, sử dụng nội suy để di chuyển mượt mà
-        if (distance > 10) {
+        if (distance > 1) {
           final steps = 10; // Số bước di chuyển
           final latStep = (newLocation.latitude - previousLocation!.latitude) / steps;
           final lngStep = (newLocation.longitude - previousLocation!.longitude) / steps;
@@ -126,6 +127,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       if (isNavigating) {
         _mapController.move(newLocation, 20.0); // Di chuyển bản đồ
         _checkIfOnRoute(newLocation); // Kiểm tra vị trí trên tuyến đường
+        _checkIfArrived(newLocation); // Thêm kiểm tra đến nơi
       }
 
       previousLocation = newLocation;
@@ -187,6 +189,34 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     });
   }
 
+  void _checkIfArrived(LatLng userLocation) {
+      if (routeCoordinates.isNotEmpty) {
+          final destination = routeCoordinates.last;
+          final distanceToDestination = Distance().as(LengthUnit.Meter, userLocation, destination);
+
+          if (distanceToDestination < 5) { // Ngưỡng 5m
+              setState(() {
+                  isNavigating = false;
+                  routeCoordinates.clear();
+              });
+
+              // Hiển thị thông báo đã đến nơi
+              showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                      title: const Text("Đã đến nơi"),
+                      content: const Text("Bạn đã đến điểm đến!"),
+                      actions: [
+                          TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text("OK"),
+                          ),
+                      ],
+                  ),
+              );
+          }
+      }
+  }
 
   Future<void> updateRouteToStore(LatLng destination) async {
     if (currentLocation != null) {
