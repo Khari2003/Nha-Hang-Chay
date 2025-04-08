@@ -22,23 +22,20 @@ List<Marker> buildMarkers({
       width: 80.0,
       height: 80.0,
       point: currentLocation,
-      child: isNavigating && userHeading != null
+      child: userHeading != null
           ? Transform.rotate(
-              angle: (mapRotation) * (3.14159265359 / 180),
+              angle: (userHeading + mapRotation) * (3.14159265359 / 180),
               child: SvgPicture.asset(
                 'assets/location-arrow.svg', // Custom SVG for navigation
                 width: 40.0,
                 height: 40.0,
               ),
             )
-          : Transform.rotate(
-              angle: 3.14159265359 / 180,
-              child: const Icon(
-                Icons.my_location,
-                color: Colors.green,
-                size: 40.0,
-              ),
-            )
+          : const Icon(
+              Icons.my_location,
+              color: Colors.green,
+              size: 40.0,
+            ),
     ));
   }
 
