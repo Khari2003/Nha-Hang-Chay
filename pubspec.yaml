@@ -26,6 +26,13 @@ dependencies:
   flutter_svg: ^2.0.17
   sensors_plus: ^6.1.1
   flutter_compass: ^0.8.1
+  equatable: ^2.0.7
+  flutter_bloc: ^9.1.0
+  dartz: ^0.10.1
+  location: ^8.0.0
+  get_it: ^8.0.3
+  email_validator: ^3.0.0
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:
