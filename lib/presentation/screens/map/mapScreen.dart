@@ -1,11 +1,11 @@
-// ignore_for_file: file_names, library_private_types_in_public_api, depend_on_referenced_packages
+// ignore_for_file: file_names, library_private_types_in_public_api, depend_on_referenced_packages, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
 import 'package:my_app/domain/entities/location.dart';
 import 'package:my_app/domain/entities/store.dart';
 import 'package:my_app/domain/usecases/getCurrentLocation.dart';
-import 'package:my_app/domain/usecases/getRoute.dart';
 import 'package:my_app/domain/usecases/getStores.dart';
+import 'package:my_app/domain/usecases/getRoute.dart';
 import 'package:my_app/presentation/screens/map/mapViewModel.dart';
 import 'package:my_app/presentation/screens/search/searchPlacesScreen.dart';
 import 'package:my_app/presentation/widgets/StoreDetailWidget.dart';
@@ -51,12 +51,13 @@ class MapScreen extends StatelessWidget {
                           },
                           searchedLocation: viewModel.searchedLocation,
                           regionLocation: viewModel.regionLocation,
-                          showRegionRadiusSlider: viewModel.showRegionRadiusSlider,
+                          regionRadius: viewModel.showRegionRadiusSlider ? viewModel.radius : null,
                         ),
                         Positioned(
                           top: 16.0,
                           left: 16.0,
                           child: FloatingActionButton(
+                            heroTag: 'search_button',
                             onPressed: () async {
                               final result = await Navigator.push(
                                 context,
@@ -69,20 +70,43 @@ class MapScreen extends StatelessWidget {
                                 final double lat = double.parse(result['lat']!);
                                 final double lon = double.parse(result['lon']!);
                                 final location = Location(latitude: lat, longitude: lon);
-                                viewModel.setSearchedLocation(location, result['type']!, result['name']!);
+                                final double? radius = result['radius'] != null
+                                    ? double.parse(result['radius']!)
+                                    : null;
+
+                                // Cập nhật vị trí tìm kiếm
+                                viewModel.setSearchedLocation(
+                                  location,
+                                  result['type']!,
+                                  result['name']!,
+                                  radius: radius,
+                                );
+
+                                // Nếu là địa chỉ cụ thể, vẽ đường tới địa điểm
+                                if (result['type'] == 'exact') {
+                                  await viewModel.updateRouteToStore(location).then((_) {
+                                    if (viewModel.routeCoordinates.isEmpty) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Không thể vẽ đường đi.'),
+                                        ),
+                                      );
+                                    }
+                                  });
+                                }
                               }
                             },
                             child: const Icon(Icons.search),
                           ),
                         ),
                         Positioned(
-                          top: -90.0,
+                          top: 80.0,
                           right: 16.0,
                           child: FloatingActionButton(
+                            heroTag: 'toggle_route_type',
                             onPressed: () {
                               viewModel.toggleRouteType();
                             },
-                            heroTag: 'toggle_route_type',
                             backgroundColor: viewModel.routeType == 'driving' ? Colors.blue : Colors.green,
                             child: Icon(
                               viewModel.routeType == 'driving' ? Icons.directions_car : Icons.directions_walk,
@@ -91,29 +115,49 @@ class MapScreen extends StatelessWidget {
                         ),
                         if (viewModel.routeCoordinates.isNotEmpty && !viewModel.isNavigating)
                           Positioned(
-                            top: -160.0,
+                            top: 144.0,
                             right: 16.0,
                             child: FloatingActionButton(
+                              heroTag: 'start_navigation',
                               onPressed: () {
                                 viewModel.startNavigation();
                               },
-                              heroTag: 'start_navigation',
                               child: const Icon(Icons.play_arrow),
                             ),
                           ),
                         if (viewModel.isNavigating)
                           Positioned(
-                            top: -230.0,
+                            top: 208.0,
                             right: 16.0,
                             child: FloatingActionButton(
+                              heroTag: 'end_navigation',
                               onPressed: () {
                                 viewModel.resetToInitialState();
                               },
-                              heroTag: 'end_navigation',
                               backgroundColor: Colors.red,
                               child: const Icon(Icons.stop),
                             ),
                           ),
+                        Positioned(
+                          top: viewModel.isNavigating
+                              ? 272.0
+                              : (viewModel.routeCoordinates.isNotEmpty ? 208.0 : 144.0),
+                          right: 16.0,
+                          child: FloatingActionButton(
+                            heroTag: 'cancel_all',
+                            onPressed: () {
+                              viewModel.resetToInitialState();
+                              if (viewModel.currentLocation != null) {
+                                viewModel.mapController.move(
+                                  viewModel.currentLocation!.toLatLng(),
+                                  14.0,
+                                );
+                              }
+                            },
+                            backgroundColor: Colors.grey,
+                            child: const Icon(Icons.cancel),
+                          ),
+                        ),
                         Positioned(
                           bottom: 16.0,
                           left: 16.0,
@@ -190,6 +234,7 @@ class MapScreen extends StatelessWidget {
                                 top: -20.0,
                                 left: 16.0,
                                 child: FloatingActionButton(
+                                  heroTag: 'toggle_store_list',
                                   onPressed: () {
                                     viewModel.toggleStoreListVisibility();
                                   },
@@ -202,6 +247,7 @@ class MapScreen extends StatelessWidget {
                                 top: -20.0,
                                 right: 16.0,
                                 child: FloatingActionButton(
+                                  heroTag: 'my_location',
                                   onPressed: () {
                                     if (viewModel.currentLocation != null) {
                                       viewModel.mapController.move(

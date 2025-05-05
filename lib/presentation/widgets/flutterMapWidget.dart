@@ -1,14 +1,14 @@
 // ignore_for_file: file_names, library_private_types_in_public_api, deprecated_member_use
 
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:flutter_compass/flutter_compass.dart';
+import 'package:my_app/domain/entities/location.dart';
+import 'package:my_app/domain/entities/store.dart';
 import 'package:my_app/core/utils/buildMarkers.dart';
 import 'package:my_app/core/utils/dashPolyline.dart';
-import 'dart:async';
-import '../../domain/entities/location.dart';
-import '../../domain/entities/store.dart';
 
 class FlutterMapWidget extends StatefulWidget {
   final MapController mapController;
@@ -23,9 +23,10 @@ class FlutterMapWidget extends StatefulWidget {
   final Function(Store) onStoreTap;
   final Location? searchedLocation;
   final Location? regionLocation;
-  final bool showRegionRadiusSlider;
+  final double? regionRadius;
 
   const FlutterMapWidget({
+    super.key,
     required this.mapController,
     required this.currentLocation,
     required this.radius,
@@ -38,8 +39,7 @@ class FlutterMapWidget extends StatefulWidget {
     required this.onStoreTap,
     this.searchedLocation,
     this.regionLocation,
-    this.showRegionRadiusSlider = false,
-    super.key,
+    this.regionRadius,
   });
 
   @override
@@ -68,15 +68,18 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
   void _startSmoothMovement() {
     movementTimer?.cancel();
     const duration = Duration(milliseconds: 100);
+    const double threshold = 0.0001; // Small threshold to stop animation
     movementTimer = Timer.periodic(duration, (timer) {
       setState(() {
         animatedLocation = LatLng(
-          (animatedLocation.latitude + widget.currentLocation.latitude) / 2,
-          (animatedLocation.longitude + widget.currentLocation.longitude) / 2,
+          animatedLocation.latitude +
+              (widget.currentLocation.latitude - animatedLocation.latitude) * 0.2,
+          animatedLocation.longitude +
+              (widget.currentLocation.longitude - animatedLocation.longitude) * 0.2,
         );
       });
-      if ((animatedLocation.latitude - widget.currentLocation.latitude).abs() < 0.0001 &&
-          (animatedLocation.longitude - widget.currentLocation.longitude).abs() < 0.0001) {
+      if ((animatedLocation.latitude - widget.currentLocation.latitude).abs() < threshold &&
+          (animatedLocation.longitude - widget.currentLocation.longitude).abs() < threshold) {
         timer.cancel();
         setState(() {
           animatedLocation = widget.currentLocation.toLatLng();
@@ -106,72 +109,75 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
           mapController: widget.mapController,
           options: MapOptions(
             initialCenter: animatedLocation,
-            initialZoom: 14.0,
+            initialZoom: widget.isNavigating ? 20.0 : 14.0,
           ),
           children: [
             TileLayer(
-              urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'my_app',
             ),
-            PolylineLayer(
-              polylines: widget.routeType == 'walking'
-                  ? generateDashedPolyline(
-                      widget.routeCoordinates.map((loc) => loc.toLatLng()).toList())
-                  : [
-                      Polyline(
-                        points: widget.routeCoordinates.map((loc) => loc.toLatLng()).toList(),
-                        strokeWidth: 5.0,
-                        color: Colors.blue.withOpacity(0.75),
-                      ),
-                    ],
-            ),
+            // Vòng tròn bán kính người dùng (ẩn khi điều hướng)
             if (!widget.isNavigating)
-              TweenAnimationBuilder<double>(
-                tween: Tween<double>(begin: widget.radius, end: widget.radius),
-                duration: const Duration(milliseconds: 300),
-                builder: (context, value, child) {
-                  return CircleLayer(
-                    circles: [
-                      CircleMarker(
-                        point: widget.showRegionRadiusSlider && widget.regionLocation != null
-                            ? widget.regionLocation!.toLatLng()
-                            : animatedLocation,
-                        color: Colors.blue.withOpacity(0.3),
-                        borderStrokeWidth: 1.0,
-                        borderColor: Colors.blue,
-                        useRadiusInMeter: true,
-                        radius: value,
-                      ),
-                    ],
-                  );
-                },
+              CircleLayer(
+                circles: [
+                  CircleMarker(
+                    point: animatedLocation,
+                    radius: widget.radius, // Bán kính tính bằng mét trên bản đồ
+                    color: Colors.green.withOpacity(0.3), // Màu nền cho bán kính người dùng
+                    borderColor: Colors.green,
+                    borderStrokeWidth: 3,
+                    useRadiusInMeter: true, // Đảm bảo bán kính tính bằng mét
+                  ),
+                ],
+              ),
+            // Vòng tròn bán kính vùng
+            if (widget.regionLocation != null && widget.regionRadius != null)
+              CircleLayer(
+                circles: [
+                  CircleMarker(
+                    point: widget.regionLocation!.toLatLng(),
+                    radius: widget.regionRadius!, // Bán kính tính bằng mét trên bản đồ
+                    color: Colors.blue.withOpacity(0.3), // Màu nền cho bán kính vùng
+                    borderColor: Colors.blue,
+                    borderStrokeWidth: 3,
+                    useRadiusInMeter: true, // Đảm bảo bán kính tính bằng mét
+                  ),
+                ],
               ),
             MarkerLayer(
-              markers: [
-                ...buildMarkers(
-                  currentLocation: Location(
-                    latitude: animatedLocation.latitude,
-                    longitude: animatedLocation.longitude,
-                  ),
-                  isNavigating: widget.isNavigating,
-                  userHeading: widget.userHeading,
-                  navigatingStore: widget.navigatingStore,
-                  filteredStores: widget.filteredStores,
-                  onStoreTap: widget.onStoreTap,
-                  mapRotation: heading,
-                ),
-                if (widget.searchedLocation != null)
-                  Marker(
-                    width: 80.0,
-                    height: 80.0,
-                    point: widget.searchedLocation!.toLatLng(),
-                    child: const Icon(
-                      Icons.location_pin,
-                      color: Colors.blue,
-                      size: 40.0,
+              markers: buildMarkers(
+                currentLocation: widget.currentLocation,
+                isNavigating: widget.isNavigating,
+                userHeading: widget.userHeading,
+                navigatingStore: widget.navigatingStore,
+                filteredStores: widget.filteredStores,
+                onStoreTap: widget.onStoreTap,
+                mapRotation: widget.isNavigating ? -heading : 0.0,
+              )..addAll([
+                  if (widget.searchedLocation != null)
+                    Marker(
+                      point: widget.searchedLocation!.toLatLng(),
+                      child: const Icon(
+                        Icons.location_pin,
+                        color: Colors.red,
+                        size: 30,
+                      ),
                     ),
-                  ),
-              ],
+                ]),
             ),
+            if (widget.routeCoordinates.isNotEmpty)
+              PolylineLayer(
+                polylines: widget.routeType == 'walking'
+                    ? generateDashedPolyline(
+                        widget.routeCoordinates.map((loc) => loc.toLatLng()).toList())
+                    : [
+                        Polyline(
+                          points: widget.routeCoordinates.map((loc) => loc.toLatLng()).toList(),
+                          strokeWidth: 5.0,
+                          color: Colors.blue.withOpacity(0.75),
+                        ),
+                      ],
+              ),
           ],
         );
       },
@@ -183,4 +189,8 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
     movementTimer?.cancel();
     super.dispose();
   }
+}
+
+extension LocationExtension on Location {
+  LatLng toLatLng() => LatLng(latitude, longitude);
 }

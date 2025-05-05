@@ -10,6 +10,8 @@ abstract class LocationDataSource {
 }
 
 class LocationDataSourceImpl implements LocationDataSource {
+  LocationModel? _lastLocation;
+
   @override
   Future<LocationModel> getCurrentLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -32,10 +34,12 @@ class LocationDataSourceImpl implements LocationDataSource {
     final position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
-    return LocationModel(
+    _lastLocation = LocationModel(
       latitude: position.latitude,
       longitude: position.longitude,
+      heading: position.heading,
     );
+    return _lastLocation!;
   }
 
   @override
@@ -43,13 +47,27 @@ class LocationDataSourceImpl implements LocationDataSource {
     return Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 0,
+        distanceFilter: 0, // We handle distance filtering manually
         timeLimit: Duration(seconds: 5),
       ),
-    ).map((position) => LocationModel(
-          latitude: position.latitude,
-          longitude: position.longitude,
-          heading: position.heading,
-        ));
+    ).where((position) {
+      if (_lastLocation == null) {
+        return true; // Always emit the first location
+      }
+      final distance = Geolocator.distanceBetween(
+        _lastLocation!.latitude,
+        _lastLocation!.longitude,
+        position.latitude,
+        position.longitude,
+      );
+      return distance > 0.5; // Only emit if moved more than 0.5 meters
+    }).map((position) {
+      _lastLocation = LocationModel(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        heading: position.heading,
+      );
+      return _lastLocation!;
+    });
   }
 }

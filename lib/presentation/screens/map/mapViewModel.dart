@@ -7,8 +7,8 @@ import 'package:location/location.dart' as loc;
 import 'package:my_app/domain/entities/location.dart';
 import 'package:my_app/domain/entities/store.dart';
 import 'package:my_app/domain/usecases/getCurrentLocation.dart';
-import 'package:my_app/domain/usecases/getRoute.dart';
 import 'package:my_app/domain/usecases/getStores.dart';
+import 'package:my_app/domain/usecases/getRoute.dart';
 
 class MapViewModel extends ChangeNotifier {
   final GetCurrentLocation getCurrentLocation;
@@ -59,7 +59,7 @@ class MapViewModel extends ChangeNotifier {
     final storesResult = await getStores();
 
     locationResult.fold(
-      (failure) => print('Error fetching location: $failure'),
+      (failure) => print('Lỗi khi lấy vị trí: $failure'),
       (location) {
         _currentLocation = location;
         updateFilteredStores();
@@ -67,7 +67,7 @@ class MapViewModel extends ChangeNotifier {
     );
 
     storesResult.fold(
-      (failure) => print('Error fetching stores: $failure'),
+      (failure) => print('Lỗi khi lấy danh sách cửa hàng: $failure'),
       (stores) {
         _allStores = stores;
         updateFilteredStores();
@@ -86,8 +86,8 @@ class MapViewModel extends ChangeNotifier {
     final updatedStores = _allStores.where((store) {
       final distance = const Distance().as(
         LengthUnit.Meter,
-        center.toLatLng(), // center là Location, có toLatLng()
-        store.coordinates.toLatLng(), // store.coordinates là Location
+        center.toLatLng(),
+        store.coordinates.toLatLng(),
       );
       return distance <= _radius;
     }).toList();
@@ -122,7 +122,7 @@ class MapViewModel extends ChangeNotifier {
     );
 
     routeResult.fold(
-      (failure) => print('Error fetching route: $failure'),
+      (failure) => print('Lỗi khi lấy đường đi: $failure'),
       (route) {
         _routeCoordinates = route.coordinates;
         _navigatingStore = _selectedStore;
@@ -197,16 +197,16 @@ class MapViewModel extends ChangeNotifier {
       _routeCoordinates.removeAt(0);
       notifyListeners();
     } else if (distanceToNextPoint > 10) {
-      final newRouteResult = await getRoute(
+      final routeResult = await getRoute(
         userLocation,
         _routeCoordinates.last,
         _routeType,
       );
 
-      newRouteResult.fold(
-        (failure) => print('Error fetching new route: $failure'),
-        (newRoute) {
-          _routeCoordinates = newRoute.coordinates;
+      routeResult.fold(
+        (failure) => print('Lỗi khi lấy đường đi mới: $failure'),
+        (route) {
+          _routeCoordinates = route.coordinates;
           notifyListeners();
         },
       );
@@ -236,6 +236,9 @@ class MapViewModel extends ChangeNotifier {
     _userHeading = null;
     _selectedStore = null;
     _searchedLocation = null;
+    _regionLocation = null;
+    _regionName = null;
+    _showRegionRadiusSlider = false;
     _radius = 1000.0;
     updateFilteredStores();
     notifyListeners();
@@ -244,18 +247,26 @@ class MapViewModel extends ChangeNotifier {
   void toggleRouteType() {
     _routeType = _routeType == 'driving' ? 'walking' : 'driving';
     if (_currentLocation != null && _routeCoordinates.isNotEmpty) {
-      updateRouteToStore(_routeCoordinates.last);
+      updateRouteToStore(_routeCoordinates.last); // Đúng kiểu Location
     }
     notifyListeners();
   }
 
-  void setSearchedLocation(Location location, String type, String name) {
+  void setSearchedLocation(Location location, String type, String name, {double? radius}) {
     _searchedLocation = location;
-    if (type != 'exact') {
+    if (type == 'region') {
       _regionLocation = location;
       _regionName = name;
       _showRegionRadiusSlider = true;
+      if (radius != null) {
+        _radius = radius;
+        print('Đặt bán kính khu vực: $radius'); // Ghi log gỡ lỗi
+      }
       updateFilteredStores();
+    } else {
+      _regionLocation = null;
+      _regionName = null;
+      _showRegionRadiusSlider = false;
     }
     _mapController.move(location.toLatLng(), 16.0);
     notifyListeners();

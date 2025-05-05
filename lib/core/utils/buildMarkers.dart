@@ -1,67 +1,57 @@
-// ignore_for_file: file_names
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:my_app/domain/entities/location.dart';
 import 'package:my_app/domain/entities/store.dart';
 
 List<Marker> buildMarkers({
   required Location currentLocation,
   required bool isNavigating,
-  required double? userHeading,
-  required Store? navigatingStore,
+  double? userHeading,
+  Store? navigatingStore,
   required List<Store> filteredStores,
   required Function(Store) onStoreTap,
   required double mapRotation,
 }) {
   List<Marker> markers = [];
 
-  // Marker cho vị trí hiện tại
+  // Marker vị trí người dùng
   markers.add(
     Marker(
-      width: 80.0,
-      height: 80.0,
       point: currentLocation.toLatLng(),
-      child: Transform.rotate(
-        angle: isNavigating && userHeading != null ? (userHeading - mapRotation) * (3.14159 / 180) : 0,
-        child: const Icon(
-          Icons.my_location,
-          color: Colors.blue,
-          size: 40.0,
-        ),
-      ),
+      width: 80,
+      height: 80,
+      child: isNavigating
+          ? Transform.rotate(
+              angle: -mapRotation * (3.14159265359 / 180), // Counteract map rotation
+              child: SvgPicture.asset(
+                'assets/location-arrow.svg', // Custom SVG for navigation
+                width: 40.0,
+                height: 40.0,
+              ),
+            )
+          : const Icon(
+              Icons.my_location,
+              color: Colors.green,
+              size: 40.0,
+            ),
     ),
   );
 
-  // Marker cho cửa hàng đang điều hướng
-  if (navigatingStore != null) {
-    markers.add(
-      Marker(
-        width: 80.0,
-        height: 80.0,
-        point: navigatingStore.coordinates.toLatLng(),
-        child: const Icon(
-          Icons.store,
-          color: Colors.red,
-          size: 40.0,
-        ),
-      ),
-    );
-  }
-
-  // Marker cho các cửa hàng được lọc
+  // Marker cửa hàng
   for (var store in filteredStores) {
     markers.add(
       Marker(
-        width: 80.0,
-        height: 80.0,
         point: store.coordinates.toLatLng(),
+        width: 50,
+        height: 50,
         child: GestureDetector(
           onTap: () => onStoreTap(store),
           child: const Icon(
             Icons.store,
             color: Colors.green,
-            size: 40.0,
+            size: 50,
           ),
         ),
       ),
@@ -69,4 +59,8 @@ List<Marker> buildMarkers({
   }
 
   return markers;
+}
+
+extension LocationExtension on Location {
+  LatLng toLatLng() => LatLng(latitude, longitude);
 }
