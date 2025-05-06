@@ -127,6 +127,7 @@ class MapViewModel extends ChangeNotifier {
         _routeCoordinates = route.coordinates;
         _navigatingStore = _selectedStore;
         _selectedStore = null;
+        _isStoreListVisible = false; // Close the store list
         notifyListeners();
 
         final centerLat = (_currentLocation!.latitude + destination.latitude) / 2;
@@ -247,7 +248,7 @@ class MapViewModel extends ChangeNotifier {
   void toggleRouteType() {
     _routeType = _routeType == 'driving' ? 'walking' : 'driving';
     if (_currentLocation != null && _routeCoordinates.isNotEmpty) {
-      updateRouteToStore(_routeCoordinates.last); // Đúng kiểu Location
+      updateRouteToStore(_routeCoordinates.last);
     }
     notifyListeners();
   }
@@ -260,7 +261,7 @@ class MapViewModel extends ChangeNotifier {
       _showRegionRadiusSlider = true;
       if (radius != null) {
         _radius = radius;
-        print('Đặt bán kính khu vực: $radius'); // Ghi log gỡ lỗi
+        print('Đặt bán kính khu vực: $radius');
       }
       updateFilteredStores();
     } else {
