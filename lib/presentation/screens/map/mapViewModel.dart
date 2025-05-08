@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:location/location.dart' as loc;
-import 'package:my_app/domain/entities/location.dart';
+import 'package:my_app/domain/entities/coordinates.dart';
 import 'package:my_app/domain/entities/store.dart';
 import 'package:my_app/domain/usecases/getCurrentLocation.dart';
 import 'package:my_app/domain/usecases/getStores.dart';
@@ -21,10 +21,10 @@ class MapViewModel extends ChangeNotifier {
     required this.getRoute,
   });
 
-  Location? _currentLocation;
+  Coordinates? _currentLocation;
   List<Store> _allStores = [];
   List<Store> _filteredStores = [];
-  List<Location> _routeCoordinates = [];
+  List<Coordinates> _routeCoordinates = [];
   double _radius = 1000.0;
   bool _isStoreListVisible = false;
   bool _isNavigating = false;
@@ -32,14 +32,14 @@ class MapViewModel extends ChangeNotifier {
   Store? _selectedStore;
   Store? _navigatingStore;
   String _routeType = 'driving';
-  Location? _searchedLocation;
-  Location? _regionLocation;
+  Coordinates? _searchedLocation;
+  Coordinates? _regionLocation;
   String? _regionName;
   bool _showRegionRadiusSlider = false;
 
-  Location? get currentLocation => _currentLocation;
+  Coordinates? get currentLocation => _currentLocation;
   List<Store> get filteredStores => _filteredStores;
-  List<Location> get routeCoordinates => _routeCoordinates;
+  List<Coordinates> get routeCoordinates => _routeCoordinates;
   double get radius => _radius;
   bool get isStoreListVisible => _isStoreListVisible;
   bool get isNavigating => _isNavigating;
@@ -47,8 +47,8 @@ class MapViewModel extends ChangeNotifier {
   Store? get selectedStore => _selectedStore;
   Store? get navigatingStore => _navigatingStore;
   String get routeType => _routeType;
-  Location? get searchedLocation => _searchedLocation;
-  Location? get regionLocation => _regionLocation;
+  Coordinates? get searchedLocation => _searchedLocation;
+  Coordinates? get regionLocation => _regionLocation;
   String? get regionName => _regionName;
   bool get showRegionRadiusSlider => _showRegionRadiusSlider;
 
@@ -57,7 +57,6 @@ class MapViewModel extends ChangeNotifier {
   Future<void> fetchInitialData() async {
     final locationResult = await getCurrentLocation();
     final storesResult = await getStores();
-
     locationResult.fold(
       (failure) => print('Lỗi khi lấy vị trí: $failure'),
       (location) {
@@ -81,13 +80,19 @@ class MapViewModel extends ChangeNotifier {
     final center =
         _showRegionRadiusSlider && _regionLocation != null ? _regionLocation : _currentLocation;
 
-    if (center == null) return;
+    if (center == null) {
+      _filteredStores = [];
+      return;
+    }
 
     final updatedStores = _allStores.where((store) {
+      if (store.location == null || store.location!.coordinates == null) {
+        return false;
+      }
       final distance = const Distance().as(
         LengthUnit.Meter,
         center.toLatLng(),
-        store.coordinates.toLatLng(),
+        store.location!.coordinates!.toLatLng(),
       );
       return distance <= _radius;
     }).toList();
@@ -112,7 +117,7 @@ class MapViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateRouteToStore(Location destination) async {
+  Future<void> updateRouteToStore(Coordinates destination) async {
     if (_currentLocation == null) return;
 
     final routeResult = await getRoute(
@@ -127,7 +132,7 @@ class MapViewModel extends ChangeNotifier {
         _routeCoordinates = route.coordinates;
         _navigatingStore = _selectedStore;
         _selectedStore = null;
-        _isStoreListVisible = false; // Close the store list
+        _isStoreListVisible = false;
         notifyListeners();
 
         final centerLat = (_currentLocation!.latitude + destination.latitude) / 2;
@@ -166,7 +171,7 @@ class MapViewModel extends ChangeNotifier {
   void trackUserLocationAndDirection() {
     final locationService = loc.Location();
     locationService.onLocationChanged.listen((loc.LocationData position) async {
-      final newLocation = Location(
+      final newLocation = Coordinates(
         latitude: position.latitude!,
         longitude: position.longitude!,
       );
@@ -184,7 +189,7 @@ class MapViewModel extends ChangeNotifier {
     });
   }
 
-  Future<void> checkIfOnRoute(Location userLocation) async {
+  Future<void> checkIfOnRoute(Coordinates userLocation) async {
     if (_routeCoordinates.isEmpty) return;
 
     final nextPoint = _routeCoordinates.first;
@@ -214,7 +219,7 @@ class MapViewModel extends ChangeNotifier {
     }
   }
 
-  void checkIfArrived(Location userLocation) {
+  void checkIfArrived(Coordinates userLocation) {
     if (_routeCoordinates.isNotEmpty) {
       final destination = _routeCoordinates.last;
       final distanceToDestination = const Distance().as(
@@ -253,7 +258,7 @@ class MapViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setSearchedLocation(Location location, String type, String name, {double? radius}) {
+  void setSearchedLocation(Coordinates location, String type, String name, {double? radius}) {
     _searchedLocation = location;
     if (type == 'region') {
       _regionLocation = location;

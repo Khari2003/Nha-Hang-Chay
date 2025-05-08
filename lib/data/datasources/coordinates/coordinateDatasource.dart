@@ -2,48 +2,47 @@
 
 import 'package:geolocator/geolocator.dart';
 import 'package:my_app/core/errors/exceptions.dart';
-import 'package:my_app/data/models/locationModel.dart';
+import 'package:my_app/data/models/coordinateModel.dart';
 
-abstract class LocationDataSource {
-  Future<LocationModel> getCurrentLocation();
-  Stream<LocationModel> getLocationStream();
+abstract class CoordinateDataSource {
+  Future<CoordinateModel> getCurrentLocation();
+  Stream<CoordinateModel> getLocationStream();
 }
 
-class LocationDataSourceImpl implements LocationDataSource {
-  LocationModel? _lastLocation;
+class CoordinateDataSourceImpl implements CoordinateDataSource {
+  CoordinateModel? _lastLocation;
 
   @override
-  Future<LocationModel> getCurrentLocation() async {
+  Future<CoordinateModel> getCurrentLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      throw LocationException('Location services are disabled');
+      throw CoordinateException('Coordinate services are disabled');
     }
 
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        throw LocationException('Location permissions are denied');
+        throw CoordinateException('Coordinate permissions are denied');
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      throw LocationException('Location permissions are permanently denied');
+      throw CoordinateException('Coordinate permissions are permanently denied');
     }
 
     final position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
-    _lastLocation = LocationModel(
+    _lastLocation = CoordinateModel(
       latitude: position.latitude,
       longitude: position.longitude,
-      heading: position.heading,
     );
     return _lastLocation!;
   }
 
   @override
-  Stream<LocationModel> getLocationStream() {
+  Stream<CoordinateModel> getLocationStream() {
     return Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
@@ -52,7 +51,7 @@ class LocationDataSourceImpl implements LocationDataSource {
       ),
     ).where((position) {
       if (_lastLocation == null) {
-        return true; // Always emit the first location
+        return true; // Always emit the first Coordinate
       }
       final distance = Geolocator.distanceBetween(
         _lastLocation!.latitude,
@@ -62,10 +61,9 @@ class LocationDataSourceImpl implements LocationDataSource {
       );
       return distance > 0.5; // Only emit if moved more than 0.5 meters
     }).map((position) {
-      _lastLocation = LocationModel(
+      _lastLocation = CoordinateModel(
         latitude: position.latitude,
         longitude: position.longitude,
-        heading: position.heading,
       );
       return _lastLocation!;
     });

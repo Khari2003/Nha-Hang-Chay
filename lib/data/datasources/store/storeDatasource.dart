@@ -1,5 +1,6 @@
 // ignore_for_file: file_names
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:my_app/core/errors/exceptions.dart';
 import 'dart:convert';
@@ -13,12 +14,18 @@ abstract class StoreDataSource {
 class StoreDataSourceImpl implements StoreDataSource {
   @override
   Future<List<StoreModel>> getStores() async {
-    final response = await http.get(Uri.parse('https://server-morning-forest-197.fly.dev/api/stores'));
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((json) => StoreModel.fromJson(json)).toList();
-    } else {
-      throw ServerException('Failed to fetch stores data');
+    try {
+      final response = await http.get(Uri.parse('https://server-morning-forest-197.fly.dev/api/stores'));      
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => StoreModel.fromJson(json)).toList();
+      } else {
+        throw ServerException('Failed to fetch stores data: Status ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error in HTTP request: $e');
+      throw ServerException('Failed to fetch stores data: $e');
     }
   }
 }

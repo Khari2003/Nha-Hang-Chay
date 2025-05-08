@@ -1,17 +1,17 @@
 // ignore_for_file: file_names
 
-import 'package:my_app/data/models/locationModel.dart';
+import 'package:my_app/data/models/coordinateModel.dart';
 
 import '../../domain/entities/route.dart';
 
 class RouteModel extends Route {
-  RouteModel({required List<LocationModel> coordinates})
+  RouteModel({required List<CoordinateModel> coordinates})
       : super(coordinates: coordinates);
 
   factory RouteModel.fromJson(Map<String, dynamic> json) {
     return RouteModel(
       coordinates: (json['coordinates'] as List)
-          .map((item) => LocationModel.fromJson(item))
+          .map((item) => CoordinateModel.fromJson(item))
           .toList(),
     );
   }
@@ -19,7 +19,7 @@ class RouteModel extends Route {
   Map<String, dynamic> toJson() {
     return {
       'coordinates': coordinates
-          .map((coord) => (coord as LocationModel).toJson())
+          .map((coord) => (coord as CoordinateModel).toJson())
           .toList(),
     };
   }

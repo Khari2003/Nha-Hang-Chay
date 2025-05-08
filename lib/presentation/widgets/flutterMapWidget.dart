@@ -5,24 +5,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:my_app/domain/entities/location.dart';
+import 'package:my_app/domain/entities/coordinates.dart';
 import 'package:my_app/domain/entities/store.dart';
 import 'package:my_app/core/utils/buildMarkers.dart';
 import 'package:my_app/core/utils/dashPolyline.dart';
 
 class FlutterMapWidget extends StatefulWidget {
   final MapController mapController;
-  final Location currentLocation;
+  final Coordinates currentLocation;
   final double radius;
   final bool isNavigating;
   final double? userHeading;
   final Store? navigatingStore;
   final List<Store> filteredStores;
-  final List<Location> routeCoordinates;
+  final List<Coordinates> routeCoordinates;
   final String routeType;
   final Function(Store) onStoreTap;
-  final Location? searchedLocation;
-  final Location? regionLocation;
+  final Coordinates? searchedLocation;
+  final Coordinates? regionLocation;
   final double? regionRadius;
 
   const FlutterMapWidget({
@@ -68,7 +68,7 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
   void _startSmoothMovement() {
     movementTimer?.cancel();
     const duration = Duration(milliseconds: 100);
-    const double threshold = 0.0001; // Small threshold to stop animation
+    const double threshold = 0.0001;
     movementTimer = Timer.periodic(duration, (timer) {
       setState(() {
         animatedLocation = LatLng(
@@ -105,6 +105,11 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
           });
         }
 
+        // Lọc các cửa hàng có location và coordinates hợp lệ
+        final validStores = widget.filteredStores
+            .where((store) => store.location != null && store.location!.coordinates != null)
+            .toList();
+        print(validStores);
         return FlutterMap(
           mapController: widget.mapController,
           options: MapOptions(
@@ -116,31 +121,29 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'my_app',
             ),
-            // Vòng tròn bán kính người dùng (ẩn khi điều hướng)
             if (!widget.isNavigating)
               CircleLayer(
                 circles: [
                   CircleMarker(
                     point: animatedLocation,
-                    radius: widget.radius, // Bán kính tính bằng mét trên bản đồ
-                    color: Colors.green.withOpacity(0.3), // Màu nền cho bán kính người dùng
+                    radius: widget.radius,
+                    color: Colors.green.withOpacity(0.3),
                     borderColor: Colors.green,
                     borderStrokeWidth: 3,
-                    useRadiusInMeter: true, // Đảm bảo bán kính tính bằng mét
+                    useRadiusInMeter: true,
                   ),
                 ],
               ),
-            // Vòng tròn bán kính vùng
             if (widget.regionLocation != null && widget.regionRadius != null)
               CircleLayer(
                 circles: [
                   CircleMarker(
                     point: widget.regionLocation!.toLatLng(),
-                    radius: widget.regionRadius!, // Bán kính tính bằng mét trên bản đồ
-                    color: Colors.blue.withOpacity(0.3), // Màu nền cho bán kính vùng
+                    radius: widget.regionRadius!,
+                    color: Colors.blue.withOpacity(0.3),
                     borderColor: Colors.blue,
                     borderStrokeWidth: 3,
-                    useRadiusInMeter: true, // Đảm bảo bán kính tính bằng mét
+                    useRadiusInMeter: true,
                   ),
                 ],
               ),
@@ -150,7 +153,7 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
                 isNavigating: widget.isNavigating,
                 userHeading: widget.userHeading,
                 navigatingStore: widget.navigatingStore,
-                filteredStores: widget.filteredStores,
+                filteredStores: validStores, // Sử dụng danh sách đã lọc
                 onStoreTap: widget.onStoreTap,
                 mapRotation: widget.isNavigating ? -heading : 0.0,
               )..addAll([
@@ -191,6 +194,6 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
   }
 }
 
-extension LocationExtension on Location {
+extension LocationExtension on Coordinates {
   LatLng toLatLng() => LatLng(latitude, longitude);
 }

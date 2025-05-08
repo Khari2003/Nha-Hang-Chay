@@ -2,15 +2,15 @@
 
 import 'package:dartz/dartz.dart';
 import 'package:my_app/core/errors/failures.dart';
-import 'package:my_app/domain/repositories/locationRepository.dart';
-import '../entities/location.dart';
+import 'package:my_app/domain/repositories/coordinateRepository.dart';
+import '../entities/coordinates.dart';
 
 class GetCurrentLocation {
-  final LocationRepository repository;
+  final CoordinateRepository repository;
 
   GetCurrentLocation(this.repository);
 
-  Future<Either<Failure, Location>> call() async {
+  Future<Either<Failure, Coordinates>> call() async {
     return await repository.getCurrentLocation();
   }
 }

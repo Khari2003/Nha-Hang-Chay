@@ -1,10 +1,24 @@
-import 'package:latlong2/latlong.dart';
+import 'package:equatable/equatable.dart';
+import 'package:my_app/domain/entities/coordinates.dart';
 
-class Location {
-  final double latitude;
-  final double longitude;
+class Location with EquatableMixin {
+  final String? address;
+  final String? city;
+  final String? postalCode;
+  final String? country;
+  final Coordinates? coordinates;
 
-  Location({required this.latitude, required this.longitude});
+  Location({
+    this.address,
+    this.city,
+    this.postalCode,
+    this.country,
+    this.coordinates,
+  });
 
-  LatLng toLatLng() => LatLng(latitude, longitude);
+  @override
+  List<Object?> get props => [address, city, postalCode, country, coordinates];
+
+  @override
+  String toString() => 'Location(address: $address, city: $city, postalCode: $postalCode, country: $country, coordinates: $coordinates)';
 }

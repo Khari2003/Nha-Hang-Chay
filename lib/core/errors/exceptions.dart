@@ -3,7 +3,7 @@ class ServerException implements Exception {
   ServerException(this.message);
 }
 
-class LocationException implements Exception {
+class CoordinateException implements Exception {
   final String message;
-  LocationException(this.message);
+  CoordinateException(this.message);
 }

@@ -7,6 +7,6 @@ class ServerFailure extends Failure {
   ServerFailure(super.message);
 }
 
-class LocationFailure extends Failure {
-  LocationFailure(super.message);
+class CoordinateFailure extends Failure {
+  CoordinateFailure(super.message);
 }

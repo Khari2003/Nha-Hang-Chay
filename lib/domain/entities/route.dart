@@ -1,7 +1,7 @@
-import 'package:my_app/domain/entities/location.dart';
+import 'package:my_app/domain/entities/coordinates.dart';
 
 class Route {
-  final List<Location> coordinates;
+  final List<Coordinates> coordinates;
 
   Route({required this.coordinates});
 }

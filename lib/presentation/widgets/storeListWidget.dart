@@ -21,7 +21,9 @@ class StoreListWidget extends StatelessWidget {
         final store = stores[index];
         return ListTile(
           title: Text(store.name),
-          subtitle: Text(store.address),
+          subtitle: Text(store.location != null
+              ? 'Tỉnh/thành phố: ${store.location!.city ?? 'Không xác định'}, Đường: ${store.location!.address ?? 'Không xác định'}'
+              : 'Không có thông tin vị trí'),
           onTap: () => onSelectStore(store),
         );
       },

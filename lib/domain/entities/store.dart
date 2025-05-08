@@ -1,27 +1,31 @@
 import 'package:my_app/domain/entities/location.dart';
 
 class Store {
-  final String id;
+  final String? id;
   final String name;
-  final String address;
-  final Location coordinates;
-  final String? category;
-  final String? phoneNumber;
-  final String? website;
-  final String? priceLevel;
-  final String? openingHours;
-  final String? imageURL;
+  final String? description;
+  final Location? location; // Sử dụng Location từ location.dart
+  final List<String> cuisine;
+  final String priceRange;
+  final List<String> dietaryOptions;
+  final List<String> images;
+  final String? owner;
+  final List<String>? reviews;
+  final bool isApproved;
+  final DateTime createdAt;
 
   Store({
-    required this.id,
+    this.id,
     required this.name,
-    required this.address,
-    required this.coordinates,
-    this.category,
-    this.phoneNumber,
-    this.website,
-    this.priceLevel,
-    this.openingHours,
-    this.imageURL,
+    this.description,
+    this.location,
+    required this.cuisine,
+    required this.priceRange,
+    required this.dietaryOptions,
+    required this.images,
+    this.owner,
+    this.reviews,
+    this.isApproved = false,
+    required this.createdAt,
   });
 }

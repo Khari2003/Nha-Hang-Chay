@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:my_app/domain/entities/location.dart';
+import 'package:my_app/domain/entities/coordinates.dart';
 import 'package:my_app/domain/entities/store.dart';
 
 List<Marker> buildMarkers({
-  required Location currentLocation,
+  required Coordinates currentLocation,
   required bool isNavigating,
   double? userHeading,
   Store? navigatingStore,
@@ -43,7 +43,7 @@ List<Marker> buildMarkers({
   for (var store in filteredStores) {
     markers.add(
       Marker(
-        point: store.coordinates.toLatLng(),
+        point: store.location!.coordinates!.toLatLng(),
         width: 50,
         height: 50,
         child: GestureDetector(
@@ -61,6 +61,6 @@ List<Marker> buildMarkers({
   return markers;
 }
 
-extension LocationExtension on Location {
+extension LocationExtension on Coordinates {
   LatLng toLatLng() => LatLng(latitude, longitude);
 }

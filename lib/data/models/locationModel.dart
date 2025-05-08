@@ -1,29 +1,26 @@
-// ignore_for_file: file_names
-
-import '../../domain/entities/location.dart';
+import 'package:my_app/domain/entities/coordinates.dart';
+import 'package:my_app/domain/entities/location.dart';
 
 class LocationModel extends Location {
-  final double? heading;
-
   LocationModel({
-    required super.latitude,
-    required super.longitude,
-    this.heading,
-  });
+    required super.address,
+    required super.city,
+    required super.postalCode,
+    required super.country,
+    required double latitude,
+    required double longitude,
+  }) : super(
+          coordinates: Coordinates(latitude: latitude, longitude: longitude),
+        );
 
   factory LocationModel.fromJson(Map<String, dynamic> json) {
     return LocationModel(
-      latitude: json['latitude'],
-      longitude: json['longitude'],
-      heading: json['heading'],
+      address: json['address'],
+      city: json['city'],
+      postalCode: json['postalCode'] ?? '',
+      country: json['country'],
+      latitude: double.parse(json['lat']),
+      longitude: double.parse(json['lon']),
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'latitude': latitude,
-      'longitude': longitude,
-      'heading': heading,
-    };
   }
 }

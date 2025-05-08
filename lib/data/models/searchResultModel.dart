@@ -1,6 +1,6 @@
 // features/data/models/searchResultModel.dart
 import 'package:my_app/domain/entities/searchResult.dart';
-import 'package:my_app/domain/entities/location.dart';
+import 'package:my_app/domain/entities/coordinates.dart';
 
 class SearchResultModel extends SearchResult {
   SearchResultModel({
@@ -9,7 +9,7 @@ class SearchResultModel extends SearchResult {
     required double longitude,
     required super.type,
   }) : super(
-          coordinates: Location(latitude: latitude, longitude: longitude),
+          coordinates: Coordinates(latitude: latitude, longitude: longitude),
         );
 
   factory SearchResultModel.fromJson(Map<String, dynamic> json) {

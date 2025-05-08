@@ -3,17 +3,17 @@
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:my_app/data/datasources/auth/authDatasource.dart';
-import 'package:my_app/data/datasources/location/locationDatasource.dart';
+import 'package:my_app/data/datasources/coordinates/coordinateDatasource.dart';
 import 'package:my_app/data/datasources/osm/osmDatasource.dart';
 import 'package:my_app/data/datasources/route/routeDatasource.dart';
 import 'package:my_app/data/datasources/store/storeDatasource.dart';
 import 'package:my_app/data/repositories/authRepositoryImpl.dart';
-import 'package:my_app/data/repositories/locationRepositoryImpl.dart';
+import 'package:my_app/data/repositories/coordinateRepositoryImpl.dart';
 import 'package:my_app/data/repositories/osmRepositoryImpl.dart';
 import 'package:my_app/data/repositories/routeRepositoryImpl.dart';
 import 'package:my_app/data/repositories/storeRepositoryImpl.dart';
 import 'package:my_app/domain/repositories/authRepository.dart';
-import 'package:my_app/domain/repositories/locationRepository.dart';
+import 'package:my_app/domain/repositories/coordinateRepository.dart';
 import 'package:my_app/domain/repositories/osmRepository.dart';
 import 'package:my_app/domain/repositories/routeRepository.dart'; 
 import 'package:my_app/domain/repositories/storeRepository.dart';
@@ -37,14 +37,14 @@ Future<void> init() async {
 
   // Data sources
   sl.registerLazySingleton<AuthDataSource>(() => AuthDataSourceImpl(sl()));
-  sl.registerLazySingleton<LocationDataSource>(() => LocationDataSourceImpl());
+  sl.registerLazySingleton<CoordinateDataSource>(() => CoordinateDataSourceImpl());
   sl.registerLazySingleton<StoreDataSource>(() => StoreDataSourceImpl());
   sl.registerLazySingleton<RouteDataSource>(() => RouteDataSourceImpl());
   sl.registerLazySingleton<OSMDataSource>(() => OSMDataSourceImpl());
 
   // Repositories
   sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl()));
-  sl.registerLazySingleton<LocationRepository>(() => LocationRepositoryImpl(sl())); 
+  sl.registerLazySingleton<CoordinateRepository>(() => CoordinateRepositoryImpl(sl())); 
   sl.registerLazySingleton<StoreRepository>(() => StoreRepositoryImpl(sl()));
   sl.registerLazySingleton<RouteRepository>(() => RouteRepositoryImpl(sl()));
   sl.registerLazySingleton<OSMRepository>(() => OSMRepositoryImpl(sl()));

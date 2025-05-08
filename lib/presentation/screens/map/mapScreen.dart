@@ -1,7 +1,7 @@
 // ignore_for_file: file_names, library_private_types_in_public_api, depend_on_referenced_packages, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import 'package:my_app/domain/entities/location.dart';
+import 'package:my_app/domain/entities/coordinates.dart';
 import 'package:my_app/domain/usecases/getCurrentLocation.dart';
 import 'package:my_app/domain/usecases/getStores.dart';
 import 'package:my_app/domain/usecases/getRoute.dart';
@@ -73,7 +73,7 @@ class MapScreen extends StatelessWidget {
                                   if (result != null && result is Map<String, String>) {
                                     final double lat = double.parse(result['lat']!);
                                     final double lon = double.parse(result['lon']!);
-                                    final location = Location(latitude: lat, longitude: lon);
+                                    final location = Coordinates(latitude: lat, longitude: lon);
                                     final double? radius = result['radius'] != null
                                         ? double.parse(result['radius']!)
                                         : null;
@@ -246,7 +246,7 @@ class MapScreen extends StatelessWidget {
                                         if (viewModel.currentLocation != null) {
                                           viewModel.mapController.move(
                                             viewModel.currentLocation!.toLatLng(),
-                                            viewModel.isNavigating ? 20.0 : 14.0,
+                                            viewModel.isNavigating ? 20.0 : 14,
                                           );
                                         }
                                       },
@@ -279,18 +279,25 @@ class MapScreen extends StatelessWidget {
                                       ),
                                       StoreDetailWidget(
                                         name: viewModel.selectedStore!.name,
-                                        category: viewModel.selectedStore!.category ?? 'Không xác định',
-                                        address: viewModel.selectedStore!.address,
-                                        coordinates: viewModel.selectedStore!.coordinates,
-                                        phoneNumber: viewModel.selectedStore!.phoneNumber,
-                                        website: viewModel.selectedStore!.website,
-                                        priceLevel:
-                                            viewModel.selectedStore!.priceLevel ?? 'Không xác định',
-                                        openingHours:
-                                            viewModel.selectedStore!.openingHours ?? 'Không rõ',
-                                        imageURL: viewModel.selectedStore!.imageURL,
+                                        cuisine: viewModel.selectedStore!.cuisine,
+                                        city: viewModel.selectedStore!.location?.city,
+                                        address: viewModel.selectedStore!.location?.address,
+                                        coordinates: viewModel.selectedStore!.location?.coordinates,
+                                        priceRange: viewModel.selectedStore!.priceRange,
+                                        imageURL: viewModel.selectedStore!.images.isNotEmpty
+                                            ? viewModel.selectedStore!.images.first
+                                            : null,
                                         onGetDirections: () {
-                                          viewModel.updateRouteToStore(viewModel.selectedStore!.coordinates);
+                                          if (viewModel.selectedStore!.location?.coordinates != null) {
+                                            viewModel.updateRouteToStore(
+                                                viewModel.selectedStore!.location!.coordinates!);
+                                          } else {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                  content:
+                                                      Text('Không thể vẽ đường đi: Thiếu tọa độ.')),
+                                            );
+                                          }
                                         },
                                       ),
                                     ],

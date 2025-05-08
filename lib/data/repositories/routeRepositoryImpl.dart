@@ -4,8 +4,8 @@ import 'package:dartz/dartz.dart';
 import 'package:my_app/core/errors/exceptions.dart';
 import 'package:my_app/core/errors/failures.dart';
 import 'package:my_app/data/datasources/route/routeDatasource.dart';
-import 'package:my_app/data/models/locationModel.dart';
-import 'package:my_app/domain/entities/location.dart';
+import 'package:my_app/data/models/coordinateModel.dart';
+import 'package:my_app/domain/entities/coordinates.dart';
 import 'package:my_app/domain/entities/route.dart';
 import 'package:my_app/domain/repositories/routeRepository.dart';
 
@@ -16,11 +16,11 @@ class RouteRepositoryImpl implements RouteRepository {
 
   @override
   Future<Either<Failure, Route>> getRoute(
-      Location start, Location end, String routeType) async {
+      Coordinates start, Coordinates end, String routeType) async {
     try {
       final route = await dataSource.getRoute(
-        LocationModel(latitude: start.latitude, longitude: start.longitude),
-        LocationModel(latitude: end.latitude, longitude: end.longitude),
+        CoordinateModel(latitude: start.latitude, longitude: start.longitude),
+        CoordinateModel(latitude: end.latitude, longitude: end.longitude),
         routeType,
       );
       return Right(route);

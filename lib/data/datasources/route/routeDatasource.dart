@@ -3,18 +3,18 @@
 import 'package:latlong2/latlong.dart';
 import 'package:my_app/core/errors/exceptions.dart';
 import 'package:my_app/core/utils/shortWay.dart';
-import 'package:my_app/data/models/locationModel.dart';
+import 'package:my_app/data/models/coordinateModel.dart';
 import 'package:my_app/data/models/routeModel.dart';
 
 abstract class RouteDataSource {
   Future<RouteModel> getRoute(
-      LocationModel start, LocationModel end, String routeType);
+      CoordinateModel start, CoordinateModel end, String routeType);
 }
 
 class RouteDataSourceImpl implements RouteDataSource {
   @override
   Future<RouteModel> getRoute(
-      LocationModel start, LocationModel end, String routeType) async {
+      CoordinateModel start, CoordinateModel end, String routeType) async {
     try {
       final route = await getRouteForMapScreen(
         LatLng(start.latitude, start.longitude),
@@ -24,7 +24,7 @@ class RouteDataSourceImpl implements RouteDataSource {
       return RouteModel(
         coordinates: route
             .map((point) =>
-                LocationModel(latitude: point.latitude, longitude: point.longitude))
+                CoordinateModel(latitude: point.latitude, longitude: point.longitude))
             .toList(),
       );
     } catch (e) {
