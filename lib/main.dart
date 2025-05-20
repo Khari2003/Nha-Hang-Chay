@@ -14,8 +14,10 @@ import 'presentation/screens/auth/verifyOtpScreen.dart';
 import 'presentation/screens/auth/resetPasswordScreen.dart';
 import 'presentation/screens/auth/welcomeScreen.dart';
 import 'presentation/screens/map/mapScreen.dart';
+import 'presentation/screens/store/addStoreScreen.dart';
 import 'presentation/screens/auth/authViewModel.dart';
 import 'presentation/screens/search/searchPlacesViewModel.dart';
+import 'presentation/screens/store/storeViewModel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,7 +46,8 @@ class MyApp extends StatelessWidget {
         Provider<GetCurrentLocation>(create: (_) => di.sl<GetCurrentLocation>()),
         Provider<GetStores>(create: (_) => di.sl<GetStores>()),
         Provider<GetRoute>(create: (_) => di.sl<GetRoute>()),
-        ChangeNotifierProvider(create: (_) => di.sl<SearchPlacesViewModel>())
+        ChangeNotifierProvider(create: (_) => di.sl<SearchPlacesViewModel>()),
+        ChangeNotifierProvider(create: (_) => di.sl<StoreViewModel>()),
       ],
       child: MaterialApp(
         initialRoute: '/',
@@ -65,6 +68,7 @@ class MyApp extends StatelessWidget {
           '/verify-otp': (context) => const VerifyOtpScreen(),
           '/reset-password': (context) => const ResetPasswordScreen(),
           '/map': (context) => const MapScreen(),
+          '/create-store': (context) => const AddStoreScreen(),
         },
       ),
     );

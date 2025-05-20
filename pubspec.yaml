@@ -33,6 +33,9 @@ dependencies:
   get_it: ^8.0.3
   email_validator: ^3.0.0
   shared_preferences: ^2.5.3
+  image_picker: ^1.1.2
+  flutter_map_marker_popup: ^7.0.0
+  cloudinary_public: ^0.23.1
 
 dev_dependencies:
   flutter_test:

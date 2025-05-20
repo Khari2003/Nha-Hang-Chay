@@ -7,13 +7,12 @@ import 'package:my_app/domain/entities/store.dart';
 
 class StoreModel extends Store with EquatableMixin {
   StoreModel({
-    required super.id,
+    super.id,
     required super.name,
+    required super.type,
     super.description,
     super.location,
-    required super.cuisine,
     required super.priceRange,
-    required super.dietaryOptions,
     required super.images,
     super.owner,
     super.reviews,
@@ -24,22 +23,16 @@ class StoreModel extends Store with EquatableMixin {
   factory StoreModel.fromJson(Map<String, dynamic> json) {
     Coordinates? coordinates;
     if (json['location']?['coordinates']?['coordinates'] != null) {
-      // Định dạng GeoJSON
       coordinates = Coordinates(
         longitude: (json['location']['coordinates']['coordinates'][0] as num).toDouble(),
         latitude: (json['location']['coordinates']['coordinates'][1] as num).toDouble(),
-      );
-    } else if (json['location']?['lat'] != null && json['location']?['lon'] != null) {
-      // Định dạng lat/lon
-      coordinates = Coordinates(
-        latitude: double.parse(json['location']['lat'].toString()),
-        longitude: double.parse(json['location']['lon'].toString()),
       );
     }
 
     return StoreModel(
       id: json['_id'] as String?,
       name: json['name'] as String,
+      type: json['type'] as String,
       description: json['description'] as String?,
       location: json['location'] != null
           ? Location(
@@ -50,9 +43,7 @@ class StoreModel extends Store with EquatableMixin {
               coordinates: coordinates,
             )
           : null,
-      cuisine: List<String>.from(json['cuisine'] ?? []),
       priceRange: json['priceRange'] as String? ?? '\$',
-      dietaryOptions: List<String>.from(json['dietaryOptions'] ?? []),
       images: List<String>.from(json['images'] ?? []),
       owner: json['owner'] as String?,
       reviews: json['reviews'] != null ? List<String>.from(json['reviews']) : null,
@@ -65,6 +56,7 @@ class StoreModel extends Store with EquatableMixin {
     return {
       '_id': id,
       'name': name,
+      'type': type,
       'description': description,
       'location': location != null
           ? {
@@ -83,9 +75,7 @@ class StoreModel extends Store with EquatableMixin {
                   : null,
             }
           : null,
-      'cuisine': cuisine,
       'priceRange': priceRange,
-      'dietaryOptions': dietaryOptions,
       'images': images,
       'owner': owner,
       'reviews': reviews,
@@ -98,11 +88,10 @@ class StoreModel extends Store with EquatableMixin {
   List<Object?> get props => [
         id,
         name,
+        type,
         description,
         location,
-        cuisine,
         priceRange,
-        dietaryOptions,
         images,
         owner,
         reviews,
@@ -112,8 +101,7 @@ class StoreModel extends Store with EquatableMixin {
 
   @override
   String toString() {
-    return 'StoreModel(id: $id, name: $name, description: $description, location: $location, '
-        'cuisine: $cuisine, priceRange: $priceRange, dietaryOptions: $dietaryOptions, '
-        'images: $images, owner: $owner, reviews: $reviews, isApproved: $isApproved, createdAt: $createdAt)';
+    return 'StoreModel(id: $id, name: $name, type: $type, description: $description, location: $location, '
+        'priceRange: $priceRange, images: $images, owner: $owner, reviews: $reviews, isApproved: $isApproved, createdAt: $createdAt)';
   }
 }

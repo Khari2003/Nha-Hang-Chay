@@ -6,4 +6,5 @@ import 'package:my_app/domain/entities/store.dart';
 
 abstract class StoreRepository {
   Future<Either<Failure, List<Store>>> getStores();
+  Future<Either<Failure, Store>> createStore(Store store);
 }

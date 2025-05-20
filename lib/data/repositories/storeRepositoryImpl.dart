@@ -5,6 +5,7 @@ import 'package:my_app/core/errors/exceptions.dart';
 import 'package:my_app/core/errors/failures.dart';
 import 'package:my_app/data/datasources/store/storeDatasource.dart';
 import 'package:my_app/domain/repositories/storeRepository.dart';
+import 'package:my_app/data/models/storeModel.dart';
 import '../../domain/entities/store.dart';
 
 class StoreRepositoryImpl implements StoreRepository {
@@ -16,7 +17,20 @@ class StoreRepositoryImpl implements StoreRepository {
   Future<Either<Failure, List<Store>>> getStores() async {
     try {
       final stores = await dataSource.getStores();
+      print(stores);
       return Right(stores);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Unexpected error: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Store>> createStore(Store store) async {
+    try {
+      final createdStore = await dataSource.createStore(store as StoreModel);
+      return Right(createdStore);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {

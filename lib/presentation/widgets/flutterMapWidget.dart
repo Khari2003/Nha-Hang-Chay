@@ -1,10 +1,11 @@
-// ignore_for_file: file_names, library_private_types_in_public_api, deprecated_member_use
-
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:my_app/data/models/storeModel.dart';
 import 'package:my_app/domain/entities/coordinates.dart';
 import 'package:my_app/domain/entities/store.dart';
 import 'package:my_app/core/utils/buildMarkers.dart';
@@ -49,6 +50,7 @@ class FlutterMapWidget extends StatefulWidget {
 class _FlutterMapWidgetState extends State<FlutterMapWidget> {
   late LatLng animatedLocation;
   Timer? movementTimer;
+  final PopupController _popupController = PopupController();
 
   @override
   void initState() {
@@ -105,11 +107,10 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
           });
         }
 
-        // Lọc các cửa hàng có location và coordinates hợp lệ
         final validStores = widget.filteredStores
             .where((store) => store.location != null && store.location!.coordinates != null)
             .toList();
-        print(validStores);
+
         return FlutterMap(
           mapController: widget.mapController,
           options: MapOptions(
@@ -147,26 +148,62 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
                   ),
                 ],
               ),
-            MarkerLayer(
-              markers: buildMarkers(
-                currentLocation: widget.currentLocation,
-                isNavigating: widget.isNavigating,
-                userHeading: widget.userHeading,
-                navigatingStore: widget.navigatingStore,
-                filteredStores: validStores, // Sử dụng danh sách đã lọc
-                onStoreTap: widget.onStoreTap,
-                mapRotation: widget.isNavigating ? -heading : 0.0,
-              )..addAll([
-                  if (widget.searchedLocation != null)
-                    Marker(
-                      point: widget.searchedLocation!.toLatLng(),
-                      child: const Icon(
-                        Icons.location_pin,
-                        color: Colors.red,
-                        size: 30,
+            PopupMarkerLayer(
+              options: PopupMarkerLayerOptions(
+                popupController: _popupController,
+                markers: buildMarkers(
+                  currentLocation: widget.currentLocation,
+                  isNavigating: widget.isNavigating,
+                  userHeading: widget.userHeading,
+                  navigatingStore: widget.navigatingStore,
+                  filteredStores: validStores,
+                  onStoreTap: widget.onStoreTap,
+                  mapRotation: widget.isNavigating ? -heading : 0.0,
+                ),
+                popupDisplayOptions: PopupDisplayOptions(
+                  builder: (BuildContext context, Marker marker) {
+                    final store = validStores.firstWhere(
+                      (store) =>
+                          store.location!.coordinates!.toLatLng() == marker.point,
+                      orElse: () => StoreModel(
+                        id: '',
+                        name: 'Unknown',
+                        type: 'unknown',
+                        priceRange: '',
+                        images: [],
+                        isApproved: false,
+                        createdAt: DateTime.now(),
                       ),
-                    ),
-                ]),
+                    );
+                    return Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  store.name,
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                            Text('Loại: ${store.type}'),
+                            Text('Địa chỉ: ${store.location?.address ?? 'Không có địa chỉ'}'),
+                            Text('Thành phố: ${store.location?.city ?? 'Không xác định'}'),
+                            Text('Quốc gia: ${store.location?.country ?? 'Không xác định'}'),
+                            Text('Giá: ${store.priceRange}'),
+                            if (store.location?.coordinates != null)
+                              Text('Tọa độ: (${store.location!.coordinates!.latitude}, ${store.location!.coordinates!.longitude})'),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
             if (widget.routeCoordinates.isNotEmpty)
               PolylineLayer(

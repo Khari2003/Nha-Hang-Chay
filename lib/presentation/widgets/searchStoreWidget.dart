@@ -1,24 +1,24 @@
-// ignore_for_file: file_names
+// ignore_for_file: file_names, library_private_types_in_public_api, avoid_print, use_build_context_synchronously
 
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../../../data/datasources/osm/osmDatasource.dart';
 import 'dart:convert';
+import 'package:my_app/domain/entities/searchResult.dart';
 
 class SearchPlaces extends StatefulWidget {
   const SearchPlaces({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _SearchPlacesState createState() => _SearchPlacesState();
 }
 
 class _SearchPlacesState extends State<SearchPlaces> {
   final TextEditingController _controller = TextEditingController();
-  List<Map<String, String>> _suggestions = [];
-  List<Map<String, String>> _exactSuggestions = [];
-  List<Map<String, String>> _regionSuggestions = [];
+  List<SearchResult> _suggestions = [];
+  List<SearchResult> _exactSuggestions = [];
+  List<SearchResult> _regionSuggestions = [];
   Timer? _debounce;
   String _searchMode = "exact"; // "exact" hoặc "region"
 
@@ -44,7 +44,6 @@ class _SearchPlacesState extends State<SearchPlaces> {
         locationData = json.decode(response);
       });
     } catch (e) {
-      // ignore: avoid_print
       print("Lỗi khi load file JSON: $e");
     }
   }
@@ -54,28 +53,25 @@ class _SearchPlacesState extends State<SearchPlaces> {
 
     _debounce = Timer(const Duration(milliseconds: 500), () async {
       if (query.isNotEmpty) {
-        final dataSource = OSMDataSourceImpl();
-        List<Map<String, dynamic>> results = (await dataSource.searchPlaces(query))
-            .map((result) => {
-                  "name": result.name,
-                  "lat": result.coordinates.latitude.toString(),
-                  "lon": result.coordinates.longitude.toString(),
-                  "type": result.type,
-                  "address": {} // Giả lập address để kiểm tra
-                })
-            .toList();
+        try {
+          final dataSource = OSMDataSourceImpl();
+          final results = await dataSource.searchPlaces(query);
 
+          setState(() {
+            _exactSuggestions = results
+                .where((place) =>
+                    place.type == "road" || place.type == "house_number")
+                .toList();
+            _updateSuggestions();
+          });
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Lỗi khi tìm kiếm: $e")),
+          );
+        }
+      } else {
         setState(() {
-          _exactSuggestions = results
-              .where((place) =>
-                  place["type"] == "road" || place["type"] == "house_number")
-              .map((item) => {
-                    "name": item["name"].toString(),
-                    "lat": item["lat"].toString(),
-                    "lon": item["lon"].toString(),
-                    "type": "exact",
-                  })
-              .toList();
+          _exactSuggestions = [];
           _updateSuggestions();
         });
       }
@@ -116,28 +112,22 @@ class _SearchPlacesState extends State<SearchPlaces> {
 
     try {
       final dataSource = OSMDataSourceImpl();
-      List<Map<String, dynamic>> results = (await dataSource.searchPlaces(name))
-          .map((result) => {
-                "name": result.name,
-                "lat": result.coordinates.latitude.toString(),
-                "lon": result.coordinates.longitude.toString(),
-                "type": result.type,
-              })
-          .toList();
+      final results = await dataSource.searchPlaces(name);
 
       setState(() {
         _regionSuggestions = results
-            .map((item) => {
-                  "name": name,
-                  "lat": item["lat"].toString(),
-                  "lon": item["lon"].toString(),
-                  "type": type,
-                })
+            .map((result) => SearchResult(
+                  name: name,
+                  coordinates: result.coordinates,
+                  address: result.address,
+                  city: result.city,
+                  country: result.country,
+                  type: type,
+                ))
             .toList();
         _updateSuggestions();
       });
     } catch (e) {
-      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Lỗi khi tìm kiếm tọa độ: $e")),
       );
@@ -172,6 +162,8 @@ class _SearchPlacesState extends State<SearchPlaces> {
                 setState(() {
                   _searchMode = newValue!;
                   _suggestions = [];
+                  _exactSuggestions = [];
+                  _regionSuggestions = [];
                   _selectedProvince = null;
                   _selectedDistrict = null;
                   _selectedCommune = null;
@@ -273,11 +265,24 @@ class _SearchPlacesState extends State<SearchPlaces> {
                 itemBuilder: (context, index) {
                   final place = _suggestions[index];
                   return ListTile(
-                    title: Text(place["name"]!),
+                    title: Text(place.name),
                     subtitle: Text(
-                        "Lat: ${place["lat"]}, Lon: ${place["lon"]}\nLoại: ${place["type"]}"),
+                      "Địa chỉ: ${place.address ?? 'N/A'}\n"
+                      "Thành phố: ${place.city ?? 'N/A'}\n"
+                      "Quốc gia: ${place.country ?? 'N/A'}\n"
+                      "Tọa độ: (${place.coordinates.latitude}, ${place.coordinates.longitude})\n"
+                      "Loại: ${place.type}",
+                    ),
                     onTap: () {
-                      Navigator.pop(context, place);
+                      Navigator.pop(context, {
+                        "name": place.name,
+                        "address": place.address,
+                        "city": place.city,
+                        "country": place.country,
+                        "lat": place.coordinates.latitude.toString(),
+                        "lon": place.coordinates.longitude.toString(),
+                        "type": place.type,
+                      });
                     },
                   );
                 },

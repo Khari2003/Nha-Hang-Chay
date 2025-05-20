@@ -15,19 +15,22 @@ import 'package:my_app/data/repositories/storeRepositoryImpl.dart';
 import 'package:my_app/domain/repositories/authRepository.dart';
 import 'package:my_app/domain/repositories/coordinateRepository.dart';
 import 'package:my_app/domain/repositories/osmRepository.dart';
-import 'package:my_app/domain/repositories/routeRepository.dart'; 
+import 'package:my_app/domain/repositories/routeRepository.dart';
 import 'package:my_app/domain/repositories/storeRepository.dart';
 import 'package:my_app/domain/usecases/auth/forgotPassword.dart';
 import 'package:my_app/domain/usecases/auth/login.dart';
 import 'package:my_app/domain/usecases/auth/register.dart';
 import 'package:my_app/domain/usecases/auth/resetPassword.dart';
 import 'package:my_app/domain/usecases/auth/verifyOtp.dart';
+import 'package:my_app/domain/usecases/createStore.dart';
 import 'package:my_app/domain/usecases/getCurrentLocation.dart';
 import 'package:my_app/domain/usecases/getRoute.dart';
 import 'package:my_app/domain/usecases/getStores.dart';
 import 'package:my_app/domain/usecases/searchPlaces.dart';
 import 'package:my_app/presentation/screens/auth/authViewModel.dart';
+import 'package:my_app/presentation/screens/map/mapViewModel.dart';
 import 'package:my_app/presentation/screens/search/searchPlacesViewModel.dart';
+import 'package:my_app/presentation/screens/store/storeViewModel.dart';
 
 final sl = GetIt.instance;
 
@@ -38,13 +41,13 @@ Future<void> init() async {
   // Data sources
   sl.registerLazySingleton<AuthDataSource>(() => AuthDataSourceImpl(sl()));
   sl.registerLazySingleton<CoordinateDataSource>(() => CoordinateDataSourceImpl());
-  sl.registerLazySingleton<StoreDataSource>(() => StoreDataSourceImpl());
+  sl.registerLazySingleton<StoreDataSource>(() => StoreDataSourceImpl(sl()));
   sl.registerLazySingleton<RouteDataSource>(() => RouteDataSourceImpl());
   sl.registerLazySingleton<OSMDataSource>(() => OSMDataSourceImpl());
 
   // Repositories
   sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl()));
-  sl.registerLazySingleton<CoordinateRepository>(() => CoordinateRepositoryImpl(sl())); 
+  sl.registerLazySingleton<CoordinateRepository>(() => CoordinateRepositoryImpl(sl()));
   sl.registerLazySingleton<StoreRepository>(() => StoreRepositoryImpl(sl()));
   sl.registerLazySingleton<RouteRepository>(() => RouteRepositoryImpl(sl()));
   sl.registerLazySingleton<OSMRepository>(() => OSMRepositoryImpl(sl()));
@@ -59,6 +62,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetStores(sl()));
   sl.registerLazySingleton(() => GetRoute(sl()));
   sl.registerLazySingleton(() => SearchPlaces(sl()));
+  sl.registerLazySingleton(() => CreateStore(sl()));
 
   // View models
   sl.registerFactory(() => AuthViewModel(
@@ -68,6 +72,16 @@ Future<void> init() async {
         verifyOtpUseCase: sl(),
         resetPasswordUseCase: sl(),
       ));
-  
   sl.registerFactory(() => SearchPlacesViewModel(searchPlaces: sl()));
+  sl.registerFactory(() => StoreViewModel(
+        createStoreUseCase: sl(),
+        searchPlacesUseCase: sl(),
+        osmDataSource: sl(),
+        getCurrentLocation: sl(),
+      ));
+  sl.registerFactory(() => MapViewModel(
+        getCurrentLocation: sl(),
+        getStores: sl(),
+        getRoute: sl(),
+      ));
 }

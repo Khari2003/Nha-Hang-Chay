@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import '../../../core/errors/failures.dart';
 import '../../../domain/entities/auth.dart';
 import '../../../domain/usecases/auth/login.dart';
@@ -7,6 +8,7 @@ import '../../../domain/usecases/auth/register.dart';
 import '../../../domain/usecases/auth/forgotPassword.dart';
 import '../../../domain/usecases/auth/verifyOtp.dart';
 import '../../../domain/usecases/auth/resetPassword.dart';
+import 'package:my_app/core/constants/apiEndpoints.dart';
 
 class AuthViewModel extends ChangeNotifier {
   final Login loginUseCase;
@@ -109,6 +111,40 @@ class AuthViewModel extends ChangeNotifier {
       _auth = await resetPasswordUseCase(ResetPasswordParams(email, newPassword));
     } catch (e) {
       _errorMessage = e is ServerFailure ? e.message : 'An error occurred';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> logout() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final accessToken = prefs.getString('accessToken');
+
+      if (accessToken != null) {
+        final response = await http.post(
+          Uri.parse(ApiEndpoints.logout),
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+          },
+        );
+
+        if (response.statusCode != 200 && response.statusCode != 204) {
+          throw ServerFailure('Logout failed: ${response.reasonPhrase}');
+        }
+      }
+
+      await prefs.remove('accessToken');
+      await prefs.remove('refreshToken');
+      _auth = null;
+      _isGuest = false;
+    } catch (e) {
+      _errorMessage = e is ServerFailure ? e.message : 'An error occurred during logout';
     } finally {
       _isLoading = false;
       notifyListeners();

@@ -1,5 +1,7 @@
 class ApiEndpoints {
-  static const String baseUrl = 'https:/server-morning-forest-197.fly.dev'; // Thay đổi nếu cần
+  static const String baseUrl = 'https://server-morning-forest-197.fly.dev'; 
+  // static const String baseUrl = 'http://192.168.18.1:3000';
+
 
   // Auth endpoints
   static const String login = '$baseUrl/api/auth/login';
@@ -10,8 +12,8 @@ class ApiEndpoints {
   static const String logout = '$baseUrl/api/auth/logout';
   static const String verifyToken = '$baseUrl/api/auth/verifyToken';
 
-  // Other endpoints (existing)
+  // Store endpoints
   static const String stores = '$baseUrl/api/stores';
   static const String searchStores = '$baseUrl/api/stores/search';
-  // Thêm các endpoint khác nếu cần
+  static const String createStore = '$baseUrl/api/stores';
 }

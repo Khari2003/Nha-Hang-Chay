@@ -5,22 +5,24 @@ import '../../domain/entities/coordinates.dart';
 
 class StoreDetailWidget extends StatelessWidget {
   final String name;
-  final List<String> cuisine; // Sửa từ String thành List<String>
-  final String? city; // Có thể null
-  final String? address; // Có thể null
-  final Coordinates? coordinates; // Có thể null
+  final String? city;
+  final String? address;
+  final Coordinates? coordinates;
   final String? priceRange;
   final String? imageURL;
+  final String type; // Thêm type
+  final bool isApproved; // Thêm isApproved
   final VoidCallback onGetDirections;
 
   const StoreDetailWidget({
     required this.name,
-    required this.cuisine,
     this.city,
     this.address,
     this.coordinates,
     this.priceRange,
     this.imageURL,
+    required this.type,
+    required this.isApproved,
     required this.onGetDirections,
     super.key,
   });
@@ -32,15 +34,19 @@ class StoreDetailWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            name,
-            style: Theme.of(context).textTheme.titleLarge,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                name,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ],
           ),
           const SizedBox(height: 8.0),
-          Text('Ẩm thực: ${cuisine.isNotEmpty ? cuisine.join(', ') : "Không xác định"}'),
+          Text('Loại: $type'),
           if (city != null) Text('Thành phố: $city'),
           if (address != null) Text('Địa chỉ: $address'),
-          if (coordinates != null) Text('Tọa độ: ${coordinates!.latitude}, ${coordinates!.longitude}'),
           if (priceRange != null) Text('Mức giá: $priceRange'),
           if (imageURL != null)
             Image.network(

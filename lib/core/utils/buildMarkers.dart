@@ -26,7 +26,7 @@ List<Marker> buildMarkers({
           ? Transform.rotate(
               angle: -mapRotation * (3.14159265359 / 180), // Counteract map rotation
               child: SvgPicture.asset(
-                'assets/location-arrow.svg', // Custom SVG for navigation
+                'assets/location-arrow.svg',
                 width: 40.0,
                 height: 40.0,
               ),
@@ -39,8 +39,76 @@ List<Marker> buildMarkers({
     ),
   );
 
-  // Marker cửa hàng
+  // Marker cửa hàng với biểu tượng tùy chỉnh theo type
   for (var store in filteredStores) {
+    if (store.location == null || store.location!.coordinates == null) {
+      debugPrint('Cửa hàng ${store.name} bị bỏ qua do thiếu location hoặc coordinates');
+      continue;
+    }
+
+    // Chọn biểu tượng và màu dựa trên type
+    IconData storeIcon;
+    Color iconColor;
+    switch (store.type.toLowerCase()) {
+      case 'historical_site':
+        storeIcon = Icons.account_balance; // tượng trưng cho công trình lịch sử
+        iconColor = Colors.brown;
+        break;
+      case 'museum':
+        storeIcon = Icons.museum;
+        iconColor = Colors.indigo;
+        break;
+      case 'natural_landmark':
+        storeIcon = Icons.terrain;
+        iconColor = Colors.green;
+        break;
+      case 'amusement_park':
+        storeIcon = Icons.emoji_emotions;
+        iconColor = Colors.purple;
+        break;
+      case 'beach':
+        storeIcon = Icons.beach_access;
+        iconColor = Colors.orange;
+        break;
+      case 'park':
+        storeIcon = Icons.park;
+        iconColor = Colors.lightGreen;
+        break;
+      case 'cultural_site':
+        storeIcon = Icons.theater_comedy;
+        iconColor = Colors.deepOrange;
+        break;
+      case 'religious_site':
+        storeIcon = Icons.account_balance_outlined;
+        iconColor = Colors.deepPurple;
+        break;
+      case 'zoo':
+        storeIcon = Icons.pets;
+        iconColor = Colors.brown;
+        break;
+      case 'aquarium':
+        storeIcon = Icons.waves;
+        iconColor = Colors.cyan;
+        break;
+      case 'market':
+        storeIcon = Icons.shopping_basket;
+        iconColor = Colors.blueGrey;
+        break;
+      case 'festival':
+        storeIcon = Icons.celebration;
+        iconColor = Colors.pink;
+        break;
+      case 'viewpoint':
+        storeIcon = Icons.visibility;
+        iconColor = Colors.teal;
+        break;
+      case 'other':
+      default:
+        storeIcon = Icons.place;
+        iconColor = Colors.grey;
+        break;
+    }
+
     markers.add(
       Marker(
         point: store.location!.coordinates!.toLatLng(),
@@ -48,10 +116,15 @@ List<Marker> buildMarkers({
         height: 50,
         child: GestureDetector(
           onTap: () => onStoreTap(store),
-          child: const Icon(
-            Icons.store,
-            color: Colors.green,
-            size: 50,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Icon(
+                storeIcon,
+                color: iconColor,
+                size: 50,
+              ),
+            ],
           ),
         ),
       ),
