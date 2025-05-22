@@ -1,4 +1,4 @@
-// ignore_for_file: file_names
+// ignore_for_file: file_names, depend_on_referenced_packages, library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
 import 'package:my_app/presentation/screens/store/storeViewModel.dart';
@@ -18,23 +18,21 @@ class _StoreFormWidgetState extends State<StoreFormWidget> {
   String? _selectedType;
 
   final List<String> _storeTypes = [
-    'historical_site',
-    'museum',
-    'natural_landmark',
-    'amusement_park',
-    'beach',
-    'park',
-    'cultural_site',
-    'religious_site',
-    'zoo',
-    'aquarium',
-    'market',
-    'festival',
-    'viewpoint',
-    'other',
+    'Di tích lịch sử',
+    'Bảo tàng',
+    'Di tích tự nhiên',
+    'Trung tâm giải trí',
+    'công viên',
+    'Di tích văn hóa',
+    'Di tích tôn giáo',
+    'Sở thú',
+    'Thủy cung',
+    'Nhà hàng',
+    'Địa điểm ngắm cảnh',
+    'Khác'
   ];
 
-  final List<String> _priceRanges = ['\$', '\$\$', '\$\$\$', '\$\$\$\$'];
+  final List<String> _priceRanges = ['Miễn phí','Thấp', 'Hợp lý', 'Cao cấp', 'Sang trọng'];
 
   @override
   void dispose() {

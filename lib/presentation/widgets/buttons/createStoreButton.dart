@@ -10,8 +10,13 @@ class CreateStoreButton extends StatelessWidget {
       onPressed: () {
         Navigator.pushNamed(context, '/create-store');
       },
-      backgroundColor: Colors.orange,
-      child: const Icon(Icons.add_business),
+      backgroundColor: Colors.orange[600],
+      foregroundColor: Colors.white,
+      elevation: 4,
+      hoverElevation: 8,
+      tooltip: 'Create New Store',
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: const Icon(Icons.add_business, size: 28),
     );
   }
 }

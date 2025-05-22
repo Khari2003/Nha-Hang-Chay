@@ -13,8 +13,13 @@ class EndNavigationButton extends StatelessWidget {
       onPressed: () {
         viewModel.resetToInitialState();
       },
-      backgroundColor: Colors.red,
-      child: const Icon(Icons.stop),
+      backgroundColor: Colors.red[600],
+      foregroundColor: Colors.white,
+      elevation: 4,
+      hoverElevation: 8,
+      tooltip: 'End Navigation',
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: const Icon(Icons.stop, size: 28),
     );
   }
 }

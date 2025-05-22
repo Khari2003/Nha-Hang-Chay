@@ -37,6 +37,35 @@ class MapViewModel extends ChangeNotifier {
   String? _regionName;
   bool _showRegionRadiusSlider = false;
 
+  // Thêm danh sách các loại địa điểm và mức giá được chọn
+  final List<String> _selectedTypes = [];
+  final List<String> _selectedPriceRanges = [];
+
+  // Danh sách các loại địa điểm và mức giá có sẵn
+  static const List<String> availableTypes = [
+    'Di tích lịch sử',
+    'Bảo tàng',
+    'Di tích tự nhiên',
+    'Trung tâm giải trí',
+    'Công viên',
+    'Di tích văn hóa',
+    'Di tích tôn giáo',
+    'Sở thú',
+    'Thủy cung',
+    'Nhà hàng',
+    'Địa điểm ngắm cảnh',
+    'Rạp chiếu phim',
+    'Khác',
+  ];
+
+  static const List<String> availablePriceRanges = [
+    'Miễn phí',
+    'Thấp',
+    'Tầm trung',
+    'Cao cấp',
+    'Sang trọng',
+  ];
+
   Coordinates? get currentLocation => _currentLocation;
   List<Store> get filteredStores => _filteredStores;
   List<Coordinates> get routeCoordinates => _routeCoordinates;
@@ -51,6 +80,8 @@ class MapViewModel extends ChangeNotifier {
   Coordinates? get regionLocation => _regionLocation;
   String? get regionName => _regionName;
   bool get showRegionRadiusSlider => _showRegionRadiusSlider;
+  List<String> get selectedTypes => _selectedTypes;
+  List<String> get selectedPriceRanges => _selectedPriceRanges;
 
   final MapController _mapController = MapController();
 
@@ -94,7 +125,13 @@ class MapViewModel extends ChangeNotifier {
         center.toLatLng(),
         store.location!.coordinates!.toLatLng(),
       );
-      return distance <= _radius;
+
+      // Kiểm tra điều kiện lọc theo loại và mức giá
+      final matchesType = _selectedTypes.isEmpty || _selectedTypes.contains(store.type);
+      final matchesPriceRange =
+          _selectedPriceRanges.isEmpty || _selectedPriceRanges.contains(store.priceRange);
+
+      return distance <= _radius && matchesType && matchesPriceRange;
     }).toList();
 
     _filteredStores = updatedStores;
@@ -114,6 +151,33 @@ class MapViewModel extends ChangeNotifier {
 
   void selectStore(Store? store) {
     _selectedStore = store;
+    notifyListeners();
+  }
+
+  void toggleTypeFilter(String type) {
+    if (_selectedTypes.contains(type)) {
+      _selectedTypes.remove(type);
+    } else {
+      _selectedTypes.add(type);
+    }
+    updateFilteredStores();
+    notifyListeners();
+  }
+
+  void togglePriceRangeFilter(String priceRange) {
+    if (_selectedPriceRanges.contains(priceRange)) {
+      _selectedPriceRanges.remove(priceRange);
+    } else {
+      _selectedPriceRanges.add(priceRange);
+    }
+    updateFilteredStores();
+    notifyListeners();
+  }
+
+  void clearFilters() {
+    _selectedTypes.clear();
+    _selectedPriceRanges.clear();
+    updateFilteredStores();
     notifyListeners();
   }
 
@@ -246,6 +310,8 @@ class MapViewModel extends ChangeNotifier {
     _regionName = null;
     _showRegionRadiusSlider = false;
     _radius = 1000.0;
+    _selectedTypes.clear();
+    _selectedPriceRanges.clear();
     updateFilteredStores();
     notifyListeners();
   }

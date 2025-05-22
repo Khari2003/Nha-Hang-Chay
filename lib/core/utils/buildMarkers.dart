@@ -1,3 +1,5 @@
+// ignore_for_file: file_names
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -50,59 +52,55 @@ List<Marker> buildMarkers({
     IconData storeIcon;
     Color iconColor;
     switch (store.type.toLowerCase()) {
-      case 'historical_site':
-        storeIcon = Icons.account_balance; // tượng trưng cho công trình lịch sử
+      case 'Di tích lịch sử':
+        storeIcon = Icons.account_balance; // Tượng trưng cho công trình lịch sử
         iconColor = Colors.brown;
         break;
-      case 'museum':
+      case 'Bảo tàng':
         storeIcon = Icons.museum;
         iconColor = Colors.indigo;
         break;
-      case 'natural_landmark':
+      case 'Di tích tự nhiên':
         storeIcon = Icons.terrain;
         iconColor = Colors.green;
         break;
-      case 'amusement_park':
+      case 'Trung tâm giải trí':
         storeIcon = Icons.emoji_emotions;
         iconColor = Colors.purple;
         break;
-      case 'beach':
-        storeIcon = Icons.beach_access;
-        iconColor = Colors.orange;
-        break;
-      case 'park':
+      case 'Công viên':
         storeIcon = Icons.park;
         iconColor = Colors.lightGreen;
         break;
-      case 'cultural_site':
+      case 'Di tích văn hóa':
         storeIcon = Icons.theater_comedy;
         iconColor = Colors.deepOrange;
         break;
-      case 'religious_site':
+      case 'Di tích tôn giáo':
         storeIcon = Icons.account_balance_outlined;
         iconColor = Colors.deepPurple;
         break;
-      case 'zoo':
+      case 'Sở thú':
         storeIcon = Icons.pets;
         iconColor = Colors.brown;
         break;
-      case 'aquarium':
+      case 'Thủy cung':
         storeIcon = Icons.waves;
         iconColor = Colors.cyan;
         break;
-      case 'market':
-        storeIcon = Icons.shopping_basket;
+      case 'Nhà hàng':
+        storeIcon = Icons.restaurant;
         iconColor = Colors.blueGrey;
         break;
-      case 'festival':
-        storeIcon = Icons.celebration;
-        iconColor = Colors.pink;
-        break;
-      case 'viewpoint':
+      case 'Địa điểm ngắm cảnh':
         storeIcon = Icons.visibility;
         iconColor = Colors.teal;
         break;
-      case 'other':
+      case 'Rạp chiếu phim':
+        storeIcon = Icons.local_movies;
+        iconColor = Colors.pink;
+        break;
+      case 'Khác':
       default:
         storeIcon = Icons.place;
         iconColor = Colors.grey;

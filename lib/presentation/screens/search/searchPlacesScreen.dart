@@ -154,14 +154,23 @@ class SearchPlacesScreen extends StatelessWidget {
                                     itemCount: viewModel.results.length,
                                     itemBuilder: (context, index) {
                                       final result = viewModel.results[index];
-                                      return ListTile(
-                                        title: Text(result['name'] ?? 'Không có tên'),
-                                        subtitle: Text(
-                                          result['type'] ?? 'Không rõ',
-                                        ),
-                                        onTap: () {
-                                          Navigator.pop(context, result);
-                                        },
+                                      return Column(
+                                        children: [
+                                          ListTile(
+                                            title: Text(result['name'] ?? 'Không có tên'),
+                                            onTap: () {
+                                              Navigator.pop(context, result);
+                                            },
+                                          ),
+                                          // Thêm Divider nếu không phải là item cuối cùng
+                                          if (index < viewModel.results.length - 1)
+                                            const Divider(
+                                              color: Colors.blue,
+                                              thickness: 1,
+                                              indent: 16,
+                                              endIndent: 16,
+                                            ),
+                                        ],
                                       );
                                     },
                                   ),

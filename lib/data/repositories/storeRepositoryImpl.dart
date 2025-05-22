@@ -17,7 +17,6 @@ class StoreRepositoryImpl implements StoreRepository {
   Future<Either<Failure, List<Store>>> getStores() async {
     try {
       final stores = await dataSource.getStores();
-      print(stores);
       return Right(stores);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));

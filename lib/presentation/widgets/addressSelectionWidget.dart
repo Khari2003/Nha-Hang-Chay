@@ -1,4 +1,4 @@
-// ignore_for_file: file_names
+// ignore_for_file: file_names, depend_on_referenced_packages, library_private_types_in_public_api, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
 import 'package:my_app/domain/entities/coordinates.dart';
@@ -25,30 +25,35 @@ class _AddressSelectionWidgetState extends State<AddressSelectionWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Chọn địa chỉ',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
         Row(
           children: [
             Expanded(
               child: RadioListTile<bool>(
-                title: const Text('Nhập địa chỉ'),
+                title: const Text(
+                  'Nhập địa chỉ',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
                 value: true,
                 groupValue: _isAddressSearch,
                 onChanged: (value) => setState(() => _isAddressSearch = value!),
+                activeColor: Colors.blue,
               ),
             ),
             Expanded(
               child: RadioListTile<bool>(
-                title: const Text('Chọn trên bản đồ'),
+                title: const Text(
+                  'Chọn trên bản đồ',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
                 value: false,
                 groupValue: _isAddressSearch,
                 onChanged: (value) => setState(() => _isAddressSearch = value!),
+                activeColor: Colors.blue,
               ),
             ),
           ],
         ),
+        const SizedBox(height: 8),
         if (_isAddressSearch)
           AddressSearchWidget(
             onLocationSelected: (Location location) => storeViewModel.setLocation(location),
@@ -79,22 +84,32 @@ class _AddressSelectionWidgetState extends State<AddressSelectionWidget> {
                 ),
               );
             },
-            icon: const Icon(Icons.map),
-            label: const Text('Mở bản đồ để chọn vị trí'),
+            icon: Icon(Icons.map_outlined, color: Colors.blue),
+            label: Text(' Chọn vị trí trên bản đồ ', style: TextStyle(color: Colors.blue)),
             style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              side: BorderSide(color: Colors.blue),
             ),
           ),
-        const SizedBox(height: 8),
-        Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: Text(
-            'Đã chọn: ${storeViewModel.selectedLocation?.address ?? ''}, '
-                '${storeViewModel.selectedLocation?.city ?? ''}, '
-                '${storeViewModel.selectedLocation?.country ?? ''}',
-            style: const TextStyle(color: Colors.green),
+        const SizedBox(height: 12),
+        if (storeViewModel.selectedLocation != null)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.green[50],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              'Đã chọn: ${storeViewModel.selectedLocation?.address ?? ''}, '
+              '${storeViewModel.selectedLocation?.city ?? ''}, '
+              '${storeViewModel.selectedLocation?.country ?? ''}',
+              style: TextStyle(
+                color: Colors.green[800],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
-        ),
       ],
     );
   }

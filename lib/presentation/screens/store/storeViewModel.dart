@@ -10,8 +10,8 @@ import 'package:my_app/domain/usecases/searchPlaces.dart';
 import 'package:my_app/core/errors/failures.dart';
 import 'package:my_app/domain/entities/coordinates.dart';
 import 'package:my_app/data/datasources/osm/osmDatasource.dart';
-import 'package:http/http.dart' as http; 
-import 'dart:convert'; 
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class StoreViewModel extends ChangeNotifier {
   final CreateStore createStoreUseCase;
@@ -38,19 +38,19 @@ class StoreViewModel extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   List<XFile> get selectedImages => _selectedImages;
 
-  /// Cấu hình Cloudinary
+  /// Cloudinary configuration
   static const String cloudName = 'dsplmxojb';
   static const String uploadPreset = 'chat-app-file';
   static const String uploadUrl = 'https://api.cloudinary.com/v1_1/$cloudName/auto/upload';
 
-  /// Cập nhật vị trí đã chọn
+  /// Update selected location
   void setLocation(Location location) {
     _selectedLocation = location;
     _errorMessage = null;
     notifyListeners();
   }
 
-  /// Cho phép người dùng chọn nhiều ảnh từ thiết bị
+  /// Pick multiple images from gallery
   Future<void> pickImages() async {
     final ImagePicker picker = ImagePicker();
     final List<XFile> images = await picker.pickMultiImage();
@@ -63,7 +63,29 @@ class StoreViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Upload danh sách ảnh lên Cloudinary
+  /// Pick single image from camera
+  Future<void> pickImageFromCamera() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.camera);
+    if (image != null) {
+      _selectedImages.add(image);
+      _errorMessage = null;
+    } else {
+      _errorMessage = 'Không có ảnh nào được chụp';
+    }
+    notifyListeners();
+  }
+
+  /// Remove image at index
+  void removeImage(int index) {
+    if (index >= 0 && index < _selectedImages.length) {
+      _selectedImages.removeAt(index);
+      _errorMessage = null;
+      notifyListeners();
+    }
+  }
+
+  /// Upload images to Cloudinary
   Future<List<String>> uploadImages(List<XFile> images) async {
     _isLoading = true;
     _errorMessage = null;
@@ -72,12 +94,10 @@ class StoreViewModel extends ChangeNotifier {
     List<String> imageUrls = [];
     try {
       for (var image in images) {
-        // Tạo yêu cầu multipart
         var request = http.MultipartRequest('POST', Uri.parse(uploadUrl));
         request.fields['upload_preset'] = uploadPreset;
         request.files.add(await http.MultipartFile.fromPath('file', image.path));
 
-        // Gửi yêu cầu
         final response = await request.send();
         final responseData = await response.stream.bytesToString();
         final jsonData = jsonDecode(responseData);
@@ -97,7 +117,7 @@ class StoreViewModel extends ChangeNotifier {
     return imageUrls;
   }
 
-  /// Tạo cửa hàng mới với thông tin và ảnh đã chọn
+  /// Create new store with information and selected images
   Future<void> createStore(StoreModel store) async {
     _isLoading = true;
     _errorMessage = null;
@@ -121,7 +141,7 @@ class StoreViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Lấy vị trí hiện tại của người dùng
+  /// Fetch user's current location
   Future<void> fetchInitialData() async {
     final locationResult = await getCurrentLocation();
     locationResult.fold(
@@ -131,7 +151,7 @@ class StoreViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Tìm kiếm địa chỉ dựa trên từ khóa
+  /// Search addresses based on query
   Future<List<Map<String, String>>> searchAddress(String query) async {
     final result = await searchPlacesUseCase(query);
     List<Map<String, String>> places = [];
@@ -156,7 +176,7 @@ class StoreViewModel extends ChangeNotifier {
     return places;
   }
 
-  /// Tra cứu địa chỉ ngược từ tọa độ
+  /// Reverse geocode from coordinates
   Future<Location?> reverseGeocode(Coordinates coordinates) async {
     _isLoading = true;
     _errorMessage = null;
@@ -182,7 +202,6 @@ class StoreViewModel extends ChangeNotifier {
   }
 }
 
-// Phương thức copyWith cho StoreModel
 extension StoreModelExtension on StoreModel {
   StoreModel copyWith({
     String? id,

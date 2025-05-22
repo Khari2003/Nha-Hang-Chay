@@ -13,8 +13,15 @@ class ToggleStoreListButton extends StatelessWidget {
       onPressed: () {
         viewModel.toggleStoreListVisibility();
       },
+      backgroundColor: Theme.of(context).primaryColor,
+      foregroundColor: Colors.white,
+      elevation: 4,
+      hoverElevation: 8,
+      tooltip: viewModel.isStoreListVisible ? 'Hide Store List' : 'Show Store List',
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Icon(
         viewModel.isStoreListVisible ? Icons.close : Icons.list,
+        size: 28,
       ),
     );
   }

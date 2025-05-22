@@ -1,6 +1,7 @@
-// ignore_for_file: file_names
+// ignore_for_file: file_names, depend_on_referenced_packages, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:my_app/core/constants/theme.dart';
 import 'package:my_app/data/models/storeModel.dart';
 import 'package:my_app/presentation/screens/auth/authViewModel.dart';
 import 'package:my_app/presentation/screens/store/storeViewModel.dart';
@@ -19,8 +20,11 @@ class SubmitButtonWidget extends StatelessWidget {
     final formState = storeFormKey.currentState;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (storeViewModel.isLoading) const CircularProgressIndicator(),
+        if (storeViewModel.isLoading)
+          const Center(child: CircularProgressIndicator()),
+        const SizedBox(height: 16),
         ElevatedButton(
           onPressed: () async {
             if (formState == null) {
@@ -61,8 +65,8 @@ class SubmitButtonWidget extends StatelessWidget {
               type: formState.type!,
               description: formState.description,
               location: storeViewModel.selectedLocation,
-              priceRange: formState.priceRange!, // Đảm bảo không null
-              images: [], // URL sẽ được cập nhật sau khi upload
+              priceRange: formState.priceRange!,
+              images: [],
               owner: authViewModel.auth?.id,
               reviews: null,
               isApproved: false,
@@ -74,14 +78,29 @@ class SubmitButtonWidget extends StatelessWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Tạo cửa hàng thành công')),
               );
-              Navigator.pop(context);
+              Navigator.pushNamed(context, '/map');
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(storeViewModel.errorMessage!)),
               );
             }
           },
-          child: const Text('Tạo cửa hàng'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: appTheme().primaryColor,
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 4,
+          ),
+          child: const Text(
+            'Tạo cửa hàng',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
         ),
       ],
     );

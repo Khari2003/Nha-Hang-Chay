@@ -21,93 +21,112 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return Theme(
       data: appTheme(),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Forgot Password'),
-          centerTitle: true,
-        ),
         body: SafeArea(
           child: Center(
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 40.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Reset Your Password',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 32),
-                      TextFormField(
-                        controller: _emailController,
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your email';
-                          }
-                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                            return 'Please enter a valid email';
-                          }
-                          return null;
-                        },
-                      ),
-                      if (Provider.of<AuthViewModel>(context).errorMessage != null)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Text(
-                            Provider.of<AuthViewModel>(context).errorMessage!,
-                            style: const TextStyle(color: Colors.red),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      const SizedBox(height: 24),
-                      Provider.of<AuthViewModel>(context).isLoading
-                          ? const Center(child: CircularProgressIndicator())
-                          : SizedBox(
-                              width: double.infinity,
-                              height: 50,
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  if (_formKey.currentState!.validate()) {
-                                    await Provider.of<AuthViewModel>(context, listen: false)
-                                        .forgotPassword(_emailController.text);
-                                    if (Provider.of<AuthViewModel>(context, listen: false)
-                                            .auth
-                                            ?.message !=
-                                        null) {
-                                      Navigator.pushNamed(context, '/verify-otp',
-                                          arguments: _emailController.text);
-                                    }
-                                  }
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+                child: Card(
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.arrow_back, color: Colors.blue),
+                                onPressed: () {
+                                  Navigator.pop(context);
                                 },
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                'EMAIL',
+                                style: appTheme().textTheme.headlineSmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: appTheme().primaryColor,
+                                    ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const Spacer(flex: 2), 
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          const SizedBox(height: 24),
+                          TextFormField(
+                            controller: _emailController,
+                            decoration: InputDecoration(
+                              labelText: 'Email',
+                              hintText: 'you@example.com',
+                              prefixIcon: const Icon(Icons.email_outlined),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[100],
+                            ),
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Nhập email của bạn';
+                              }
+                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                                return 'Nhập email đúng theo mẫu';
+                              }
+                              return null;
+                            },
+                          ),
+                          if (Provider.of<AuthViewModel>(context).errorMessage != null)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12.0),
+                              child: Text(
+                                Provider.of<AuthViewModel>(context).errorMessage!,
+                                style: TextStyle(
+                                  color: appTheme().colorScheme.error,
+                                  fontSize: 14,
                                 ),
-                                child: const Text('Send OTP', style: TextStyle(fontSize: 16)),
+                                textAlign: TextAlign.center,
                               ),
                             ),
-                      const SizedBox(height: 16),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/login');
-                        },
-                        child: const Text('Back to Login'),
+                          const SizedBox(height: 24),
+                          Provider.of<AuthViewModel>(context).isLoading
+                              ? const CircularProgressIndicator()
+                              : ElevatedButton(
+                                  onPressed: () async {
+                                    if (_formKey.currentState!.validate()) {
+                                      await Provider.of<AuthViewModel>(context, listen: false)
+                                          .forgotPassword(_emailController.text);
+                                      if (Provider.of<AuthViewModel>(context, listen: false)
+                                              .auth
+                                              ?.message !=
+                                          null) {
+                                        Navigator.pushNamed(context, '/verify-otp',
+                                            arguments: _emailController.text);
+                                      }
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    minimumSize: const Size(double.infinity, 56),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    elevation: 2,
+                                  ),
+                                  child: const Text(
+                                    'Send OTP',
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),

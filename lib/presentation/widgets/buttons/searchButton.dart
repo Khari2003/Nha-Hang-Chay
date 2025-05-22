@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:my_app/domain/entities/coordinates.dart';
 import 'package:my_app/presentation/screens/map/mapViewModel.dart';
@@ -49,7 +47,13 @@ class SearchButton extends StatelessWidget {
           }
         }
       },
-      child: const Icon(Icons.search),
+      backgroundColor: Theme.of(context).primaryColor,
+      foregroundColor: Colors.white,
+      elevation: 4,
+      hoverElevation: 8,
+      tooltip: 'Search Places',
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: const Icon(Icons.search, size: 28),
     );
   }
 }

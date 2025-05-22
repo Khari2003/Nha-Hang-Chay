@@ -18,7 +18,13 @@ class MyLocationButton extends StatelessWidget {
           );
         }
       },
-      child: const Icon(Icons.my_location),
+      backgroundColor: Theme.of(context).primaryColor,
+      foregroundColor: Colors.white,
+      elevation: 4,
+      hoverElevation: 8,
+      tooltip: 'Go to My Location',
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: const Icon(Icons.my_location, size: 28),
     );
   }
 }

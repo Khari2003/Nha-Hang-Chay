@@ -13,9 +13,15 @@ class ToggleRouteTypeButton extends StatelessWidget {
       onPressed: () {
         viewModel.toggleRouteType();
       },
-      backgroundColor: viewModel.routeType == 'driving' ? Colors.blue : Colors.green,
+      backgroundColor: viewModel.routeType == 'driving' ? Colors.blue[600] : Colors.green[600],
+      foregroundColor: Colors.white,
+      elevation: 4,
+      hoverElevation: 8,
+      tooltip: viewModel.routeType == 'driving' ? 'Switch to Walking' : 'Switch to Driving',
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Icon(
         viewModel.routeType == 'driving' ? Icons.directions_car : Icons.directions_walk,
+        size: 28,
       ),
     );
   }

@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:my_app/presentation/screens/auth/authViewModel.dart';
 import 'package:provider/provider.dart';
@@ -15,7 +13,6 @@ class AuthButton extends StatelessWidget {
       heroTag: 'auth_button',
       onPressed: () async {
         if (authViewModel.auth?.accessToken != null) {
-          // Show logout confirmation dialog
           final confirmLogout = await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
@@ -53,8 +50,14 @@ class AuthButton extends StatelessWidget {
       backgroundColor: authViewModel.auth?.accessToken != null
           ? Colors.redAccent
           : Colors.blueAccent,
+      foregroundColor: Colors.white,
+      elevation: 4,
+      hoverElevation: 8,
+      tooltip: authViewModel.auth?.accessToken != null ? 'Logout' : 'Login',
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Icon(
         authViewModel.auth?.accessToken != null ? Icons.logout : Icons.login,
+        size: 28,
       ),
     );
   }

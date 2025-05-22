@@ -21,20 +21,16 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   @override
   void initState() {
     super.initState();
-    // Add listeners to auto-focus and auto-submit
     for (int i = 0; i < _otpControllers.length; i++) {
       _otpControllers[i].addListener(() {
-        // Auto-focus next field when a digit is entered
         if (_otpControllers[i].text.length == 1 && i < _otpControllers.length - 1) {
           _focusNodes[i].unfocus();
           FocusScope.of(context).requestFocus(_focusNodes[i + 1]);
         }
-        // Auto-focus previous field on backspace
         if (_otpControllers[i].text.isEmpty && i > 0) {
           _focusNodes[i].unfocus();
           FocusScope.of(context).requestFocus(_focusNodes[i - 1]);
         }
-        // Auto-submit when all 6 digits are entered
         String otp = _otpControllers.map((controller) => controller.text).join();
         if (otp.length == 6 && _formKey.currentState!.validate()) {
           _verifyOtp(context);
@@ -43,16 +39,13 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     }
   }
 
-  // Function to handle OTP verification
   Future<void> _verifyOtp(BuildContext context) async {
     final String email = ModalRoute.of(context)!.settings.arguments as String;
     String otp = _otpControllers.map((controller) => controller.text).join();
     await Provider.of<AuthViewModel>(context, listen: false).verifyOtp(email, otp);
     if (Provider.of<AuthViewModel>(context, listen: false).auth?.message != null) {
-      // OTP verification successful, proceed to reset password
       Navigator.pushNamed(context, '/reset-password', arguments: email);
     } else {
-      // OTP verification failed, navigate back to forgot password
       Navigator.pushReplacementNamed(context, '/forgot-password');
     }
   }
@@ -65,106 +58,129 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
         appBar: AppBar(
           title: const Text('Verify OTP'),
           centerTitle: true,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.blue),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
         ),
         body: SafeArea(
           child: Center(
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 40.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Enter OTP Code',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 32),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: List.generate(6, (index) {
-                          return SizedBox(
-                            width: 40,
-                            height: 50,
-                            child: TextFormField(
-                              controller: _otpControllers[index],
-                              focusNode: _focusNodes[index],
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: const BorderSide(color: Colors.grey),
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+                child: Card(
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Enter OTP Code',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).primaryColor,
                                 ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: const BorderSide(color: Colors.blue),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                              ),
-                              keyboardType: TextInputType.number,
-                              textAlign: TextAlign.center,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(1),
-                              ],
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return '';
-                                }
-                                if (!RegExp(r'^\d$').hasMatch(value)) {
-                                  return '';
-                                }
-                                return null;
-                              },
-                              onChanged: (value) {
-                                // Ensure the field updates properly
-                                setState(() {});
-                              },
-                            ),
-                          );
-                        }),
-                      ),
-                      if (Provider.of<AuthViewModel>(context).errorMessage != null)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Text(
-                            Provider.of<AuthViewModel>(context).errorMessage!,
-                            style: const TextStyle(color: Colors.red),
                             textAlign: TextAlign.center,
                           ),
-                        ),
-                      const SizedBox(height: 24),
-                      Provider.of<AuthViewModel>(context).isLoading
-                          ? const Center(child: CircularProgressIndicator())
-                          : SizedBox(
-                              width: double.infinity,
-                              height: 50,
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  if (_formKey.currentState!.validate()) {
-                                    await _verifyOtp(context);
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Check your email for the OTP',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Colors.grey[600],
                                 ),
-                                child: const Text('Verify OTP', style: TextStyle(fontSize: 16)),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 24),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: List.generate(6, (index) {
+                              return SizedBox(
+                                width: 48,
+                                height: 56,
+                                child: TextFormField(
+                                  controller: _otpControllers[index],
+                                  focusNode: _focusNodes[index],
+                                  decoration: InputDecoration(
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(color: Colors.grey[400]!),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                                    ),
+                                    filled: true,
+                                    fillColor: Colors.grey[100],
+                                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  textAlign: TextAlign.center,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(1),
+                                  ],
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return '';
+                                    }
+                                    if (!RegExp(r'^\d$').hasMatch(value)) {
+                                      return '';
+                                    }
+                                    return null;
+                                  },
+                                  onChanged: (value) {
+                                    setState(() {});
+                                  },
+                                ),
+                              );
+                            }),
+                          ),
+                          if (Provider.of<AuthViewModel>(context).errorMessage != null)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12.0),
+                              child: Text(
+                                Provider.of<AuthViewModel>(context).errorMessage!,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                  fontSize: 14,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
                             ),
-                      const SizedBox(height: 16),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/forgot-password');
-                        },
-                        child: const Text('Resend OTP'),
+                          const SizedBox(height: 24),
+                          Provider.of<AuthViewModel>(context).isLoading
+                              ? const CircularProgressIndicator()
+                              : ElevatedButton(
+                                  onPressed: () async {
+                                    if (_formKey.currentState!.validate()) {
+                                      await _verifyOtp(context);
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    minimumSize: const Size(double.infinity, 56),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    elevation: 2,
+                                  ),
+                                  child: const Text(
+                                    'Verify OTP',
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),

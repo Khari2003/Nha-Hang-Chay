@@ -22,6 +22,7 @@ import 'package:my_app/presentation/widgets/StoreDetailWidget.dart';
 import 'package:my_app/presentation/widgets/flutterMapWidget.dart';
 import 'package:my_app/presentation/widgets/radiusSlider.dart';
 import 'package:my_app/presentation/widgets/storeListWidget.dart';
+import 'package:my_app/presentation/widgets/filterWidget.dart';
 import 'package:provider/provider.dart';
 
 class MapScreen extends StatefulWidget {
@@ -71,6 +72,16 @@ class _MapScreenState extends State<MapScreen> {
     _startHideButtonsTimer();
   }
 
+  void _showFilterSheet(MapViewModel viewModel) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.2),
+      builder: (context) => FilterWidget(viewModel: viewModel),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authViewModel = Provider.of<AuthViewModel>(context);
@@ -85,7 +96,6 @@ class _MapScreenState extends State<MapScreen> {
         )..fetchInitialData(),
         child: Consumer<MapViewModel>(
           builder: (context, viewModel, child) {
-            // Calculate button positions dynamically
             double baseTop = authViewModel.auth?.accessToken != null ? 144.0 : 80.0;
             double authButtonTop = baseTop + 64.0;
             double startNavigationTop = authButtonTop;
@@ -104,7 +114,11 @@ class _MapScreenState extends State<MapScreen> {
                     _onButtonPressed();
                   },
                   child: viewModel.currentLocation == null
-                      ? const Center(child: CircularProgressIndicator())
+                      ? Center(
+                          child: CircularProgressIndicator(
+                            color: Theme.of(context).primaryColor,
+                          ),
+                        )
                       : Stack(
                           children: [
                             FlutterMapWidget(
@@ -131,7 +145,6 @@ class _MapScreenState extends State<MapScreen> {
                                 top: 16.0,
                                 left: 16.0,
                                 child: GestureDetector(
-                                  onTap: _onButtonPressed,
                                   child: SearchButton(viewModel: viewModel),
                                 ),
                               ),
@@ -160,7 +173,8 @@ class _MapScreenState extends State<MapScreen> {
                                   child: const AuthButton(),
                                 ),
                               ),
-                              if (viewModel.routeCoordinates.isNotEmpty && !viewModel.isNavigating)
+                              if (viewModel.routeCoordinates.isNotEmpty &&
+                                  !viewModel.isNavigating)
                                 Positioned(
                                   top: startNavigationTop,
                                   right: 16.0,
@@ -186,6 +200,26 @@ class _MapScreenState extends State<MapScreen> {
                                   child: CancelAllButton(viewModel: viewModel),
                                 ),
                               ),
+                              Positioned(
+                                top: 16.0 + 64.0,
+                                left: 16.0,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    _showFilterSheet(viewModel);
+                                  },
+                                  child: FloatingActionButton(
+                                    onPressed: () => _showFilterSheet(viewModel),
+                                    backgroundColor: Theme.of(context).primaryColor,
+                                    foregroundColor: Colors.white,
+                                    elevation: 6,
+                                    hoverElevation: 10,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: const Icon(Icons.filter_list, size: 28),
+                                  ),
+                                ),
+                              ),
                             ] else ...[
                               Positioned(
                                 top: 16.0,
@@ -201,12 +235,20 @@ class _MapScreenState extends State<MapScreen> {
                                 clipBehavior: Clip.none,
                                 children: [
                                   Card(
+                                    elevation: 4,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
                                     margin: const EdgeInsets.all(8.0),
                                     child: Container(
                                       constraints: BoxConstraints(
                                         maxHeight: MediaQuery.of(context).size.height * 0.4,
                                       ),
-                                      padding: const EdgeInsets.all(8.0),
+                                      padding: const EdgeInsets.all(12.0),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).cardColor,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
                                       child: SingleChildScrollView(
                                         child: Column(
                                           mainAxisAlignment: MainAxisAlignment.center,
@@ -241,7 +283,7 @@ class _MapScreenState extends State<MapScreen> {
                                               height: viewModel.isStoreListVisible ? 200.0 : 0.0,
                                               child: ClipRRect(
                                                 borderRadius: const BorderRadius.vertical(
-                                                  bottom: Radius.circular(8.0),
+                                                  bottom: Radius.circular(12.0),
                                                 ),
                                                 child: StoreListWidget(
                                                   stores: viewModel.filteredStores,
@@ -258,30 +300,34 @@ class _MapScreenState extends State<MapScreen> {
                                     ),
                                   ),
                                   Positioned(
-                                      top: -20.0,
-                                      left: 16.0,
-                                      child: GestureDetector(
-                                        onTap: _onButtonPressed,
-                                        child: ToggleStoreListButton(viewModel: viewModel),
-                                      ),
+                                    top: -24.0,
+                                    left: 16.0,
+                                    child: GestureDetector(
+                                      onTap: _onButtonPressed,
+                                      child: ToggleStoreListButton(viewModel: viewModel),
                                     ),
-                                    Positioned(
-                                      top: -20.0,
-                                      right: 16.0,
-                                      child: GestureDetector(
-                                        onTap: _onButtonPressed,
-                                        child: MyLocationButton(viewModel: viewModel),
-                                      ),
+                                  ),
+                                  Positioned(
+                                    top: -24.0,
+                                    right: 16.0,
+                                    child: GestureDetector(
+                                      onTap: _onButtonPressed,
+                                      child: MyLocationButton(viewModel: viewModel),
                                     ),
+                                  ),
                                 ],
                               ),
                             ),
                             if (viewModel.selectedStore != null)
                               Positioned(
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
+                                bottom: 16.0,
+                                left: 16.0,
+                                right: 16.0,
                                 child: Card(
+                                  elevation: 6,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                   margin: const EdgeInsets.all(8.0),
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
@@ -290,7 +336,7 @@ class _MapScreenState extends State<MapScreen> {
                                         mainAxisAlignment: MainAxisAlignment.end,
                                         children: [
                                           IconButton(
-                                            icon: const Icon(Icons.close),
+                                            icon: Icon(Icons.close, color: Theme.of(context).primaryColor),
                                             onPressed: () {
                                               viewModel.selectStore(null);
                                               _onButtonPressed();
@@ -304,9 +350,7 @@ class _MapScreenState extends State<MapScreen> {
                                         address: viewModel.selectedStore!.location?.address,
                                         coordinates: viewModel.selectedStore!.location?.coordinates,
                                         priceRange: viewModel.selectedStore!.priceRange,
-                                        imageURL: viewModel.selectedStore!.images.isNotEmpty
-                                            ? viewModel.selectedStore!.images.first
-                                            : null,
+                                        imageURLs: viewModel.selectedStore!.images,
                                         type: viewModel.selectedStore!.type,
                                         isApproved: viewModel.selectedStore!.isApproved,
                                         onGetDirections: () {

@@ -13,7 +13,13 @@ class StartNavigationButton extends StatelessWidget {
       onPressed: () {
         viewModel.startNavigation();
       },
-      child: const Icon(Icons.play_arrow),
+      backgroundColor: Colors.green[600],
+      foregroundColor: Colors.white,
+      elevation: 4,
+      hoverElevation: 8,
+      tooltip: 'Start Navigation',
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: const Icon(Icons.play_arrow, size: 28),
     );
   }
 }

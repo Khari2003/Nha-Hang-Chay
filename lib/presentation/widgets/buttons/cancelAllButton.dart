@@ -19,8 +19,13 @@ class CancelAllButton extends StatelessWidget {
           );
         }
       },
-      backgroundColor: Colors.grey,
-      child: const Icon(Icons.cancel),
+      backgroundColor: Colors.grey[700],
+      foregroundColor: Colors.white,
+      elevation: 4,
+      hoverElevation: 8,
+      tooltip: 'Cancel All Actions',
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: const Icon(Icons.cancel, size: 28),
     );
   }
 }
