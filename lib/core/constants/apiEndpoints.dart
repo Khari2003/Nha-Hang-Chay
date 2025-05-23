@@ -1,7 +1,5 @@
 class ApiEndpoints {
-  static const String baseUrl = 'https://server-morning-forest-197.fly.dev'; 
-  // static const String baseUrl = 'http://192.168.18.1:3000';
-
+  static const String baseUrl = 'https://server-morning-forest-197.fly.dev';
 
   // Auth endpoints
   static const String login = '$baseUrl/api/auth/login';
@@ -16,4 +14,6 @@ class ApiEndpoints {
   static const String stores = '$baseUrl/api/stores';
   static const String searchStores = '$baseUrl/api/stores/search';
   static const String createStore = '$baseUrl/api/stores';
+  static const String updateStore = '$baseUrl/api/stores'; // PUT: /api/stores/:id
+  static const String deleteStore = '$baseUrl/api/stores'; // DELETE: /api/stores/:id
 }

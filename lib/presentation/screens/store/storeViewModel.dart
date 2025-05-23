@@ -1,13 +1,13 @@
-// ignore_for_file: file_names
-
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:my_app/core/errors/exceptions.dart';
 import 'package:my_app/data/models/storeModel.dart';
 import 'package:my_app/domain/entities/location.dart';
 import 'package:my_app/domain/usecases/createStore.dart';
 import 'package:my_app/domain/usecases/getCurrentLocation.dart';
 import 'package:my_app/domain/usecases/searchPlaces.dart';
-import 'package:my_app/core/errors/failures.dart';
+import 'package:my_app/domain/usecases/updateStore.dart';
+import 'package:my_app/domain/usecases/deleteStore.dart';
 import 'package:my_app/domain/entities/coordinates.dart';
 import 'package:my_app/data/datasources/osm/osmDatasource.dart';
 import 'package:http/http.dart' as http;
@@ -18,12 +18,16 @@ class StoreViewModel extends ChangeNotifier {
   final SearchPlaces searchPlacesUseCase;
   final OSMDataSource osmDataSource;
   final GetCurrentLocation getCurrentLocation;
+  final UpdateStore updateStoreUseCase;
+  final DeleteStore deleteStoreUseCase;
 
   StoreViewModel({
     required this.createStoreUseCase,
     required this.searchPlacesUseCase,
     required this.osmDataSource,
     required this.getCurrentLocation,
+    required this.updateStoreUseCase,
+    required this.deleteStoreUseCase,
   });
 
   Coordinates? _currentLocation;
@@ -38,19 +42,25 @@ class StoreViewModel extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   List<XFile> get selectedImages => _selectedImages;
 
-  /// Cloudinary configuration
+  // Set selected images
+  void setSelectedImages(List<XFile> images) {
+    _selectedImages = images;
+    notifyListeners();
+  }
+
+  // Cloudinary configuration
   static const String cloudName = 'dsplmxojb';
   static const String uploadPreset = 'chat-app-file';
   static const String uploadUrl = 'https://api.cloudinary.com/v1_1/$cloudName/auto/upload';
 
-  /// Update selected location
+  // Update selected location
   void setLocation(Location location) {
     _selectedLocation = location;
     _errorMessage = null;
     notifyListeners();
   }
 
-  /// Pick multiple images from gallery
+  // Pick multiple images from gallery
   Future<void> pickImages() async {
     final ImagePicker picker = ImagePicker();
     final List<XFile> images = await picker.pickMultiImage();
@@ -63,7 +73,7 @@ class StoreViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Pick single image from camera
+  // Pick single image from camera
   Future<void> pickImageFromCamera() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.camera);
@@ -76,7 +86,7 @@ class StoreViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Remove image at index
+  // Remove image at index
   void removeImage(int index) {
     if (index >= 0 && index < _selectedImages.length) {
       _selectedImages.removeAt(index);
@@ -85,7 +95,7 @@ class StoreViewModel extends ChangeNotifier {
     }
   }
 
-  /// Upload images to Cloudinary
+  // Upload images to Cloudinary
   Future<List<String>> uploadImages(List<XFile> images) async {
     _isLoading = true;
     _errorMessage = null;
@@ -105,59 +115,144 @@ class StoreViewModel extends ChangeNotifier {
         if (response.statusCode == 200) {
           imageUrls.add(jsonData['secure_url']);
         } else {
-          throw Exception('Lỗi khi upload ảnh: ${jsonData['error']['message']}');
+          final errorMessage = jsonData['error'] != null
+              ? jsonData['error']['message'] ?? 'Lỗi không xác định khi upload ảnh'
+              : 'Lỗi khi upload ảnh: Mã trạng thái ${response.statusCode}';
+          throw ServerException(errorMessage);
         }
       }
     } catch (e) {
-      _errorMessage = 'Lỗi khi upload ảnh lên Cloudinary: $e';
+      _errorMessage = e is ServerException
+          ? e.message
+          : 'Lỗi khi upload ảnh lên Cloudinary: $e';
+      notifyListeners();
+      return imageUrls; // Return partial results if any
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
     return imageUrls;
   }
 
-  /// Create new store with information and selected images
+  // Create new store with information and selected images
   Future<void> createStore(StoreModel store) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
-    final imageUrls = await uploadImages(_selectedImages);
-    store = store.copyWith(images: imageUrls);
+    try {
+      final imageUrls = await uploadImages(_selectedImages);
+      final updatedStore = store.copyWith(images: imageUrls);
 
-    final result = await createStoreUseCase(store);
-    result.fold(
-      (failure) {
-        _errorMessage = failure is ServerFailure ? failure.message : 'Đã xảy ra lỗi';
-      },
-      (_) {
-        _errorMessage = null;
-        _selectedImages.clear();
-      },
-    );
-
-    _isLoading = false;
-    notifyListeners();
+      final result = await createStoreUseCase(updatedStore);
+      result.fold(
+        (failure) {
+          _errorMessage = failure.message;
+          debugPrint('Create store failure: ${failure.message}');
+          notifyListeners();
+        },
+        (_) {
+          _errorMessage = null;
+          _selectedImages.clear();
+          notifyListeners();
+        },
+      );
+    } catch (e) {
+      _errorMessage = e is ServerException
+          ? e.message
+          : 'Lỗi không xác định khi tạo cửa hàng: $e';
+      debugPrint('Unexpected error in createStore: $e');
+      notifyListeners();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
-  /// Fetch user's current location
+  // Update existing store
+  Future<void> updateStore(String id, StoreModel store) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final imageUrls = await uploadImages(_selectedImages);
+      final updatedStore = store.copyWith(images: imageUrls.isNotEmpty ? imageUrls : store.images);
+
+      final result = await updateStoreUseCase(id, updatedStore);
+      result.fold(
+        (failure) {
+          _errorMessage = failure.message;
+          debugPrint('Update store failure: ${failure.message}');
+          notifyListeners();
+        },
+        (_) {
+          _errorMessage = null;
+          _selectedImages.clear();
+          notifyListeners();
+        },
+      );
+    } catch (e) {
+      _errorMessage = e is ServerException
+          ? e.message
+          : 'Lỗi không xác định khi cập nhật cửa hàng: $e';
+      debugPrint('Unexpected error in updateStore: $e');
+      notifyListeners();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Delete store
+  Future<void> deleteStore(String id) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final result = await deleteStoreUseCase(id);
+      result.fold(
+        (failure) {
+          _errorMessage = failure.message;
+          debugPrint('Delete store failure: ${failure.message}');
+          notifyListeners();
+        },
+        (_) {
+          _errorMessage = null;
+          notifyListeners();
+        },
+      );
+    } catch (e) {
+      _errorMessage = e is ServerException
+          ? e.message
+          : 'Lỗi không xác định khi xóa cửa hàng: $e';
+      debugPrint('Unexpected error in deleteStore: $e');
+      notifyListeners();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Fetch user's current location
   Future<void> fetchInitialData() async {
     final locationResult = await getCurrentLocation();
     locationResult.fold(
-      (failure) => debugPrint('Lỗi khi lấy vị trí: $failure'),
+      (failure) => debugPrint('Lỗi khi lấy vị trí: ${failure.message}'),
       (location) => _currentLocation = location,
     );
     notifyListeners();
   }
 
-  /// Search addresses based on query
+  // Search addresses based on query
   Future<List<Map<String, String>>> searchAddress(String query) async {
     final result = await searchPlacesUseCase(query);
     List<Map<String, String>> places = [];
     result.fold(
       (failure) {
-        _errorMessage = failure is ServerFailure ? failure.message : 'Lỗi khi tìm kiếm địa chỉ';
+        _errorMessage = failure.message;
+        debugPrint('Search address failure: ${failure.message}');
         notifyListeners();
       },
       (searchResults) {
@@ -176,7 +271,7 @@ class StoreViewModel extends ChangeNotifier {
     return places;
   }
 
-  /// Reverse geocode from coordinates
+  // Reverse geocode from coordinates
   Future<Location?> reverseGeocode(Coordinates coordinates) async {
     _isLoading = true;
     _errorMessage = null;
@@ -194,8 +289,10 @@ class StoreViewModel extends ChangeNotifier {
       notifyListeners();
       return location;
     } catch (e) {
-      _errorMessage = 'Lỗi khi tra địa chỉ: $e';
-      _isLoading = false;
+      _errorMessage = e is ServerException
+          ? e.message
+          : 'Lỗi không xác định khi tra địa chỉ: $e';
+      debugPrint('Reverse geocode error: $e');
       notifyListeners();
       return null;
     }

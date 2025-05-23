@@ -37,33 +37,33 @@ class MapViewModel extends ChangeNotifier {
   String? _regionName;
   bool _showRegionRadiusSlider = false;
 
-  // Thêm danh sách các loại địa điểm và mức giá được chọn
+  // Selected types and price ranges
   final List<String> _selectedTypes = [];
   final List<String> _selectedPriceRanges = [];
 
-  // Danh sách các loại địa điểm và mức giá có sẵn
+  // Available types and price ranges
   static const List<String> availableTypes = [
-    'Di tích lịch sử',
-    'Bảo tàng',
-    'Di tích tự nhiên',
-    'Trung tâm giải trí',
-    'Công viên',
-    'Di tích văn hóa',
-    'Di tích tôn giáo',
-    'Sở thú',
-    'Thủy cung',
-    'Nhà hàng',
-    'Địa điểm ngắm cảnh',
-    'Rạp chiếu phim',
-    'Khác',
+    'Historical Site',
+    'Museum',
+    'Natural Landmark',
+    'Entertainment Center',
+    'Park',
+    'Cultural Site',
+    'Religious Site',
+    'Zoo',
+    'Aquarium',
+    'Restaurant',
+    'Scenic Spot',
+    'Cinema',
+    'Other',
   ];
 
   static const List<String> availablePriceRanges = [
-    'Miễn phí',
-    'Thấp',
-    'Tầm trung',
-    'Cao cấp',
-    'Sang trọng',
+    'Free',
+    'Low',
+    'Moderate',
+    'High',
+    'Luxury',
   ];
 
   Coordinates? get currentLocation => _currentLocation;
@@ -89,7 +89,7 @@ class MapViewModel extends ChangeNotifier {
     final locationResult = await getCurrentLocation();
     final storesResult = await getStores();
     locationResult.fold(
-      (failure) => print('Lỗi khi lấy vị trí: $failure'),
+      (failure) => print('Error fetching location: $failure'),
       (location) {
         _currentLocation = location;
         updateFilteredStores();
@@ -97,7 +97,7 @@ class MapViewModel extends ChangeNotifier {
     );
 
     storesResult.fold(
-      (failure) => print('Lỗi khi lấy danh sách cửa hàng: $failure'),
+      (failure) => print('Error fetching stores: $failure'),
       (stores) {
         _allStores = stores;
         updateFilteredStores();
@@ -126,7 +126,6 @@ class MapViewModel extends ChangeNotifier {
         store.location!.coordinates!.toLatLng(),
       );
 
-      // Kiểm tra điều kiện lọc theo loại và mức giá
       final matchesType = _selectedTypes.isEmpty || _selectedTypes.contains(store.type);
       final matchesPriceRange =
           _selectedPriceRanges.isEmpty || _selectedPriceRanges.contains(store.priceRange);
@@ -191,7 +190,7 @@ class MapViewModel extends ChangeNotifier {
     );
 
     routeResult.fold(
-      (failure) => print('Lỗi khi lấy đường đi: $failure'),
+      (failure) => print('Error fetching route: $failure'),
       (route) {
         _routeCoordinates = route.coordinates;
         _navigatingStore = _selectedStore;
@@ -274,7 +273,7 @@ class MapViewModel extends ChangeNotifier {
       );
 
       routeResult.fold(
-        (failure) => print('Lỗi khi lấy đường đi mới: $failure'),
+        (failure) => print('Error fetching new route: $failure'),
         (route) {
           _routeCoordinates = route.coordinates;
           notifyListeners();
@@ -332,7 +331,7 @@ class MapViewModel extends ChangeNotifier {
       _showRegionRadiusSlider = true;
       if (radius != null) {
         _radius = radius;
-        print('Đặt bán kính khu vực: $radius');
+        print('Set region radius: $radius');
       }
       updateFilteredStores();
     } else {

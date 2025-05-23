@@ -1,3 +1,4 @@
+// authViewModel.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -29,11 +30,24 @@ class AuthViewModel extends ChangeNotifier {
   bool _isLoading = false;
   Auth? _auth;
   bool _isGuest = false;
+  String? _userEmail;
+  String? _userName;
 
   String? get errorMessage => _errorMessage;
   bool get isLoading => _isLoading;
   Auth? get auth => _auth;
   bool get isGuest => _isGuest;
+  String? get userEmail => _userEmail;
+  String? get userName => _userName;
+
+  // Load saved user data from SharedPreferences
+  Future<void> loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    _userEmail = prefs.getString('userEmail');
+    _userName = prefs.getString('userName');
+    _isGuest = prefs.getBool('isGuest') ?? false;
+    notifyListeners();
+  }
 
   Future<void> login(String email, String password) async {
     _isLoading = true;
@@ -47,6 +61,12 @@ class AuthViewModel extends ChangeNotifier {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('accessToken', _auth!.accessToken!);
         await prefs.setString('refreshToken', _auth!.refreshToken ?? '');
+        // Save additional user info
+        await prefs.setString('userEmail', email);
+        await prefs.setString('userName', _auth!.name ?? ''); // Assuming Auth entity has a name field
+        await prefs.setBool('isGuest', false);
+        _userEmail = email;
+        _userName = _auth!.name;
       }
     } catch (e) {
       _errorMessage = e is ServerFailure ? e.message : 'An error occurred';
@@ -64,6 +84,13 @@ class AuthViewModel extends ChangeNotifier {
     try {
       _auth = await registerUseCase(RegisterParams(name, email, password, phone));
       _isGuest = false;
+      final prefs = await SharedPreferences.getInstance();
+      // Save user info after registration
+      await prefs.setString('userEmail', email);
+      await prefs.setString('userName', name);
+      await prefs.setBool('isGuest', false);
+      _userEmail = email;
+      _userName = name;
     } catch (e) {
       _errorMessage = e is ServerFailure ? e.message : 'An error occurred';
     } finally {
@@ -139,10 +166,16 @@ class AuthViewModel extends ChangeNotifier {
         }
       }
 
+      // Clear all user data
       await prefs.remove('accessToken');
       await prefs.remove('refreshToken');
+      await prefs.remove('userEmail');
+      await prefs.remove('userName');
+      await prefs.remove('isGuest');
       _auth = null;
       _isGuest = false;
+      _userEmail = null;
+      _userName = null;
     } catch (e) {
       _errorMessage = e is ServerFailure ? e.message : 'An error occurred during logout';
     } finally {
@@ -154,6 +187,13 @@ class AuthViewModel extends ChangeNotifier {
   void setGuestMode() {
     _isGuest = true;
     _auth = null;
+    _userEmail = null;
+    _userName = null;
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setBool('isGuest', true);
+      prefs.remove('userEmail');
+      prefs.remove('userName');
+    });
     notifyListeners();
   }
 }

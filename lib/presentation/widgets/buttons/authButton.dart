@@ -1,3 +1,5 @@
+// ignore_for_file: depend_on_referenced_packages, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:my_app/presentation/screens/auth/authViewModel.dart';
 import 'package:provider/provider.dart';

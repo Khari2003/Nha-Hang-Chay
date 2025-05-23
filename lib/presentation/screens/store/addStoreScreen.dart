@@ -2,79 +2,177 @@
 
 import 'package:flutter/material.dart';
 import 'package:my_app/core/constants/theme.dart';
+import 'package:my_app/data/models/storeModel.dart';
+import 'package:my_app/presentation/screens/store/storeViewModel.dart';
 import 'package:my_app/presentation/widgets/addressSelectionWidget.dart';
 import 'package:my_app/presentation/widgets/imagePickerWidget.dart';
 import 'package:my_app/presentation/widgets/storeFormWidget.dart';
-import 'package:my_app/presentation/widgets/submitButtonWidget.dart';
+import 'package:provider/provider.dart';
 
-class AddStoreScreen extends StatelessWidget {
+class AddStoreScreen extends StatefulWidget {
   const AddStoreScreen({super.key});
 
   @override
+  _AddStoreScreenState createState() => _AddStoreScreenState();
+}
+
+class _AddStoreScreenState extends State<AddStoreScreen> {
+  final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
+
+  Future<void> _submitStore() async {
+    if (_formKey.currentState == null || !_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng kiểm tra lại biểu mẫu')),
+      );
+      return;
+    }
+
+    final storeViewModel = Provider.of<StoreViewModel>(context, listen: false);
+    final formState = storeFormKey.currentState;
+    if (formState == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Lỗi: Không thể lấy dữ liệu biểu mẫu')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final store = StoreModel(
+      name: formState.name!,
+      type: formState.type!,
+      description: formState.description,
+      location: storeViewModel.selectedLocation,
+      priceRange: formState.priceRange!,
+      images: [],
+      createdAt: DateTime.now(),
+    );
+
+    await storeViewModel.createStore(store);
+
+    setState(() => _isLoading = false);
+
+    if (storeViewModel.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Tạo cửa hàng thất bại: ${storeViewModel.errorMessage}')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tạo cửa hàng thành công')),
+      );
+      Navigator.pushReplacementNamed(context, '/map');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Thêm cửa hàng mới',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+    return Theme(
+      data: appTheme(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Thêm cửa hàng mới',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          ),
+          centerTitle: true,
+          elevation: 0,
+          backgroundColor: appTheme().primaryColor,
+          foregroundColor: Colors.white,
         ),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: appTheme().primaryColor,
-        foregroundColor: Colors.white,
-      ),
-      body: Container(
-        color: Colors.grey[100],
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        body: Stack(
+          children: [
+            Container(
+              color: Colors.grey[100],
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Thông tin cửa hàng',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                child: SingleChildScrollView(
+                  child: Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Thông tin cửa hàng',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            StoreFormWidget(key: storeFormKey),
+                            const SizedBox(height: 24),
+                            const Text(
+                              'Hình ảnh cửa hàng',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            ImagePickerWidget(
+                              onImagesChanged: (images) {
+                                Provider.of<StoreViewModel>(context, listen: false).setSelectedImages(images);
+                              },
+                            ),
+                            const SizedBox(height: 24),
+                            const Text(
+                              'Vị trí cửa hàng',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            AddressSelectionWidget(
+                              onLocationChanged: (location) {
+                                Provider.of<StoreViewModel>(context, listen: false).setLocation(location);
+                              },
+                            ),
+                            const SizedBox(height: 24),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 48,
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _submitStore,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: appTheme().primaryColor,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  elevation: 4,
+                                ),
+                                child: const Text(
+                                  'Thêm cửa hàng',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    StoreFormWidget(key: storeFormKey),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Hình ảnh cửa hàng',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const ImagePickerWidget(),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Vị trí cửa hàng',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const AddressSelectionWidget(),
-                    const SizedBox(height: 24),
-                    const SubmitButtonWidget(),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
+            if (_isLoading)
+              const Center(
+                child: CircularProgressIndicator(),
+              ),
+          ],
         ),
       ),
     );

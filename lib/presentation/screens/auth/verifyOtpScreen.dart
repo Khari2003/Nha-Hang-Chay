@@ -55,6 +55,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     return Theme(
       data: appTheme(),
       child: Scaffold(
+        resizeToAvoidBottomInset: true, // Ensure the scaffold resizes when the keyboard appears
         appBar: AppBar(
           title: const Text('Verify OTP'),
           centerTitle: true,
@@ -71,14 +72,14 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
           child: Center(
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0), // Reduced padding
                 child: Card(
                   elevation: 8,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(24.0),
+                    padding: const EdgeInsets.all(16.0), // Reduced padding inside card
                     child: Form(
                       key: _formKey,
                       child: Column(
@@ -86,13 +87,13 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                         children: [
                           Text(
                             'Enter OTP Code',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).primaryColor,
-                                ),
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith( // Changed headlineSmall to titleLarge
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).primaryColor,
+                            ),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12), // Reduced spacing
                           Text(
                             'Check your email for the OTP',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -100,54 +101,61 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                                 ),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 24),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: List.generate(6, (index) {
-                              return SizedBox(
-                                width: 48,
-                                height: 56,
-                                child: TextFormField(
-                                  controller: _otpControllers[index],
-                                  focusNode: _focusNodes[index],
-                                  decoration: InputDecoration(
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(color: Colors.grey[400]!),
+                          const SizedBox(height: 16), // Reduced spacing
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              // Dynamically calculate width based on screen size
+                              final availableWidth = constraints.maxWidth;
+                              final fieldWidth = (availableWidth - 60) / 6; // 60 for spacing (10px between 6 fields)
+                              return Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: List.generate(6, (index) {
+                                  return SizedBox(
+                                    width: fieldWidth.clamp(40, 50), // Clamp width to avoid overflow
+                                    height: 50, // Reduced height
+                                    child: TextFormField(
+                                      controller: _otpControllers[index],
+                                      focusNode: _focusNodes[index],
+                                      decoration: InputDecoration(
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                          borderSide: BorderSide(color: Colors.grey[400]!),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                          borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.grey[100],
+                                        contentPadding: const EdgeInsets.symmetric(vertical: 10), // Reduced padding
+                                      ),
+                                      keyboardType: TextInputType.number,
+                                      textAlign: TextAlign.center,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                        LengthLimitingTextInputFormatter(1),
+                                      ],
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return '';
+                                        }
+                                        if (!RegExp(r'^\d$').hasMatch(value)) {
+                                          return '';
+                                        }
+                                        return null;
+                                      },
+                                      onChanged: (value) {
+                                        setState(() {});
+                                      },
                                     ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(color: Theme.of(context).primaryColor),
-                                    ),
-                                    filled: true,
-                                    fillColor: Colors.grey[100],
-                                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                                  ),
-                                  keyboardType: TextInputType.number,
-                                  textAlign: TextAlign.center,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                    LengthLimitingTextInputFormatter(1),
-                                  ],
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return '';
-                                    }
-                                    if (!RegExp(r'^\d$').hasMatch(value)) {
-                                      return '';
-                                    }
-                                    return null;
-                                  },
-                                  onChanged: (value) {
-                                    setState(() {});
-                                  },
-                                ),
+                                  );
+                                }),
                               );
-                            }),
+                            },
                           ),
                           if (Provider.of<AuthViewModel>(context).errorMessage != null)
                             Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 12.0),
+                              padding: const EdgeInsets.symmetric(vertical: 8.0), // Reduced padding
                               child: Text(
                                 Provider.of<AuthViewModel>(context).errorMessage!,
                                 style: TextStyle(
@@ -157,7 +165,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 16), // Reduced spacing
                           Provider.of<AuthViewModel>(context).isLoading
                               ? const CircularProgressIndicator()
                               : ElevatedButton(
@@ -167,7 +175,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                                     }
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    minimumSize: const Size(double.infinity, 56),
+                                    minimumSize: const Size(double.infinity, 48), // Reduced button height
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),

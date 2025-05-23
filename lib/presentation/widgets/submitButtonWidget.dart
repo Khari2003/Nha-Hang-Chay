@@ -9,82 +9,92 @@ import 'package:my_app/presentation/widgets/storeFormWidget.dart';
 import 'package:provider/provider.dart';
 
 class SubmitButtonWidget extends StatelessWidget {
-  const SubmitButtonWidget({super.key});
+  final VoidCallback? onPressed;
+  final String label;
+  final bool isLoading;
+
+  const SubmitButtonWidget({
+    super.key,
+    this.onPressed,
+    this.label = 'Tạo cửa hàng',
+    this.isLoading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final storeViewModel = Provider.of<StoreViewModel>(context);
     final authViewModel = Provider.of<AuthViewModel>(context);
 
-    // Sử dụng GlobalKey để truy cập state của StoreFormWidget
-    final formState = storeFormKey.currentState;
+    // Default onPressed for creating a store if none provided
+    final defaultOnPressed = onPressed ?? () async {
+      final formState = storeFormKey.currentState;
+      if (formState == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Form không được khởi tạo')),
+        );
+        return;
+      }
+
+      if (formState.name!.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Vui lòng nhập tên cửa hàng')),
+        );
+        return;
+      }
+      if (formState.type == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Vui lòng chọn loại cửa hàng')),
+        );
+        return;
+      }
+      if (formState.priceRange == null || formState.priceRange!.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Vui lòng chọn mức giá')),
+        );
+        return;
+      }
+      if (storeViewModel.selectedLocation == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Vui lòng chọn địa chỉ')),
+        );
+        return;
+      }
+
+      final store = StoreModel(
+        id: null,
+        name: formState.name!,
+        type: formState.type!,
+        description: formState.description,
+        location: storeViewModel.selectedLocation,
+        priceRange: formState.priceRange!,
+        images: [],
+        owner: authViewModel.auth?.id,
+        reviews: null,
+        isApproved: false,
+        createdAt: DateTime.now(),
+      );
+
+      await storeViewModel.createStore(store);
+      if (storeViewModel.errorMessage == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tạo cửa hàng thành công')),
+        );
+        Navigator.pushNamed(context, '/map');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(storeViewModel.errorMessage!)),
+        );
+      }
+    };
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (storeViewModel.isLoading)
+        if (isLoading || storeViewModel.isLoading)
           const Center(child: CircularProgressIndicator()),
         const SizedBox(height: 16),
         ElevatedButton(
-          onPressed: () async {
-            if (formState == null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Form không được khởi tạo')),
-              );
-              return;
-            }
-
-            if (formState.name!.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Vui lòng nhập tên cửa hàng')),
-              );
-              return;
-            }
-            if (formState.type == null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Vui lòng chọn loại cửa hàng')),
-              );
-              return;
-            }
-            if (formState.priceRange == null || formState.priceRange!.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Vui lòng chọn mức giá')),
-              );
-              return;
-            }
-            if (storeViewModel.selectedLocation == null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Vui lòng chọn địa chỉ')),
-              );
-              return;
-            }
-
-            final store = StoreModel(
-              id: null,
-              name: formState.name!,
-              type: formState.type!,
-              description: formState.description,
-              location: storeViewModel.selectedLocation,
-              priceRange: formState.priceRange!,
-              images: [],
-              owner: authViewModel.auth?.id,
-              reviews: null,
-              isApproved: false,
-              createdAt: DateTime.now(),
-            );
-
-            await storeViewModel.createStore(store);
-            if (storeViewModel.errorMessage == null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Tạo cửa hàng thành công')),
-              );
-              Navigator.pushNamed(context, '/map');
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(storeViewModel.errorMessage!)),
-              );
-            }
-          },
+          onPressed: isLoading || storeViewModel.isLoading ? null : defaultOnPressed,
           style: ElevatedButton.styleFrom(
             backgroundColor: appTheme().primaryColor,
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
@@ -93,9 +103,9 @@ class SubmitButtonWidget extends StatelessWidget {
             ),
             elevation: 4,
           ),
-          child: const Text(
-            'Tạo cửa hàng',
-            style: TextStyle(
+          child: Text(
+            label,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.white,

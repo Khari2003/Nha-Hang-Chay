@@ -1,8 +1,16 @@
-// ignore_for_file: file_names, deprecated_member_use
+// ignore_for_file: depend_on_referenced_packages, deprecated_member_use
 
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import '../../domain/entities/coordinates.dart';
+import 'package:my_app/data/models/storeModel.dart';
+import 'package:my_app/domain/entities/coordinates.dart';
+import 'package:my_app/domain/entities/location.dart';
+import 'package:my_app/domain/usecases/deleteStore.dart';
+import 'package:my_app/domain/usecases/updateStore.dart';
+import 'package:my_app/presentation/screens/store/storeViewModel.dart';
+import 'package:provider/provider.dart';
+import 'package:my_app/presentation/screens/auth/authViewModel.dart';
+import 'package:my_app/presentation/screens/store/editStoreScreen.dart';
 
 class StoreDetailWidget extends StatelessWidget {
   final String name;
@@ -13,6 +21,8 @@ class StoreDetailWidget extends StatelessWidget {
   final List<String> imageURLs;
   final String type;
   final bool isApproved;
+  final String? owner;
+  final String? id;
   final VoidCallback onGetDirections;
 
   const StoreDetailWidget({
@@ -24,16 +34,20 @@ class StoreDetailWidget extends StatelessWidget {
     required this.imageURLs,
     required this.type,
     required this.isApproved,
+    this.owner,
+    this.id,
     required this.onGetDirections,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
+    final authViewModel = Provider.of<AuthViewModel>(context);
+    final isOwnerOrAdmin = authViewModel.auth?.id == owner || authViewModel.auth?.isAdmin == true;
     return Card(
-      elevation: 4.0, // Hiệu ứng đổ bóng
+      elevation: 4.0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.0), // Bo góc
+        borderRadius: BorderRadius.circular(16.0),
       ),
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       child: Padding(
@@ -41,7 +55,6 @@ class StoreDetailWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Tiêu đề và trạng thái phê duyệt
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -82,8 +95,6 @@ class StoreDetailWidget extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12.0),
-
-            // Carousel ảnh
             if (imageURLs.isNotEmpty)
               Column(
                 children: [
@@ -155,8 +166,6 @@ class StoreDetailWidget extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 16.0),
-
-            // Thông tin chi tiết
             _buildInfoRow(context, 'Loại', type, Icons.category, Colors.blue),
             if (city != null)
               _buildInfoRow(context, 'Thành phố', city!, Icons.location_city, Colors.purple),
@@ -165,27 +174,88 @@ class StoreDetailWidget extends StatelessWidget {
             if (priceRange != null)
               _buildInfoRow(context, 'Mức giá', priceRange!, Icons.attach_money, Colors.green),
             const SizedBox(height: 16.0),
-
-            // Nút "Chỉ đường"
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: coordinates != null ? onGetDirections : null,
-                icon: const Icon(Icons.directions, size: 20.0),
-                label: const Text(
-                  'Chỉ đường',
-                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w600),
-                ),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                  backgroundColor: Theme.of(context).primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 48, // Fixed height for consistency
+                    child: ElevatedButton.icon(
+                      onPressed: coordinates != null ? onGetDirections : null,
+                      icon: const Icon(Icons.directions, size: 20.0, color: Colors.white),
+                      label: const Text(
+                        'Chỉ đường',
+                        style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.w600),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        elevation: 4.0,
+                      ),
+                    ),
                   ),
-                  elevation: 3.0,
                 ),
-              ),
+                if (isOwnerOrAdmin && id != null)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12.0),
+                    child: SizedBox(
+                      height: 48, // Fixed height to match "Chỉ đường" button
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MultiProvider(
+                                providers: [
+                                  ChangeNotifierProvider.value(value: Provider.of<StoreViewModel>(context)),
+                                  Provider.value(value: Provider.of<UpdateStore>(context)),
+                                  Provider.value(value: Provider.of<DeleteStore>(context)),
+                                ],
+                                child: EditStoreScreen(
+                                  store: StoreModel(
+                                    id: id,
+                                    name: name,
+                                    type: type,
+                                    description: null,
+                                    location: Location(
+                                      address: address,
+                                      city: city,
+                                      coordinates: coordinates,
+                                    ),
+                                    priceRange: priceRange ?? 'Tầm trung',
+                                    images: imageURLs,
+                                    owner: owner,
+                                    reviews: null,
+                                    isApproved: isApproved,
+                                    createdAt: DateTime.now(),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.edit, size: 20.0),
+                        label: const Text(
+                          'Sửa',
+                          style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w600),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+                          backgroundColor: Colors.indigo,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          elevation: 4.0,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ],
         ),
@@ -193,7 +263,6 @@ class StoreDetailWidget extends StatelessWidget {
     );
   }
 
-  // Hàm helper để tạo hàng thông tin
   Widget _buildInfoRow(
       BuildContext context, String label, String value, IconData icon, Color iconColor) {
     return Padding(

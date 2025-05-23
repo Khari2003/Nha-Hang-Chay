@@ -18,7 +18,7 @@ List<Marker> buildMarkers({
 }) {
   List<Marker> markers = [];
 
-  // Marker vị trí người dùng
+  // User location marker
   markers.add(
     Marker(
       point: currentLocation.toLatLng(),
@@ -41,66 +41,66 @@ List<Marker> buildMarkers({
     ),
   );
 
-  // Marker cửa hàng với biểu tượng tùy chỉnh theo type
+  // Store markers with custom icons based on type
   for (var store in filteredStores) {
     if (store.location == null || store.location!.coordinates == null) {
-      debugPrint('Cửa hàng ${store.name} bị bỏ qua do thiếu location hoặc coordinates');
+      debugPrint('Store ${store.name} skipped due to missing location or coordinates');
       continue;
     }
 
-    // Chọn biểu tượng và màu dựa trên type
+    // Select icon and color based on type
     IconData storeIcon;
     Color iconColor;
-    switch (store.type.toLowerCase()) {
-      case 'Di tích lịch sử':
-        storeIcon = Icons.account_balance; // Tượng trưng cho công trình lịch sử
+    switch (store.type) {
+      case 'Historical Site':
+        storeIcon = Icons.account_balance;
         iconColor = Colors.brown;
         break;
-      case 'Bảo tàng':
+      case 'Museum':
         storeIcon = Icons.museum;
         iconColor = Colors.indigo;
         break;
-      case 'Di tích tự nhiên':
+      case 'Natural Landmark':
         storeIcon = Icons.terrain;
         iconColor = Colors.green;
         break;
-      case 'Trung tâm giải trí':
+      case 'Entertainment Center':
         storeIcon = Icons.emoji_emotions;
         iconColor = Colors.purple;
         break;
-      case 'Công viên':
+      case 'Park':
         storeIcon = Icons.park;
         iconColor = Colors.lightGreen;
         break;
-      case 'Di tích văn hóa':
+      case 'Cultural Site':
         storeIcon = Icons.theater_comedy;
         iconColor = Colors.deepOrange;
         break;
-      case 'Di tích tôn giáo':
+      case 'Religious Site':
         storeIcon = Icons.account_balance_outlined;
         iconColor = Colors.deepPurple;
         break;
-      case 'Sở thú':
+      case 'Zoo':
         storeIcon = Icons.pets;
         iconColor = Colors.brown;
         break;
-      case 'Thủy cung':
+      case 'Aquarium':
         storeIcon = Icons.waves;
         iconColor = Colors.cyan;
         break;
-      case 'Nhà hàng':
+      case 'Restaurant':
         storeIcon = Icons.restaurant;
         iconColor = Colors.blueGrey;
         break;
-      case 'Địa điểm ngắm cảnh':
+      case 'Scenic Spot':
         storeIcon = Icons.visibility;
         iconColor = Colors.teal;
         break;
-      case 'Rạp chiếu phim':
+      case 'Cinema':
         storeIcon = Icons.local_movies;
         iconColor = Colors.pink;
         break;
-      case 'Khác':
+      case 'Other':
       default:
         storeIcon = Icons.place;
         iconColor = Colors.grey;

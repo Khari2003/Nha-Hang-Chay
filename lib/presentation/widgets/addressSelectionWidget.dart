@@ -9,7 +9,14 @@ import 'package:my_app/presentation/widgets/addressSearchWidget.dart';
 import 'package:provider/provider.dart';
 
 class AddressSelectionWidget extends StatefulWidget {
-  const AddressSelectionWidget({super.key});
+  final Location? initialLocation;
+  final ValueChanged<Location>? onLocationChanged;
+
+  const AddressSelectionWidget({
+    super.key,
+    this.initialLocation,
+    this.onLocationChanged,
+  });
 
   @override
   _AddressSelectionWidgetState createState() => _AddressSelectionWidgetState();
@@ -17,6 +24,16 @@ class AddressSelectionWidget extends StatefulWidget {
 
 class _AddressSelectionWidgetState extends State<AddressSelectionWidget> {
   bool _isAddressSearch = true;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialLocation != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Provider.of<StoreViewModel>(context, listen: false).setLocation(widget.initialLocation!);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +73,10 @@ class _AddressSelectionWidgetState extends State<AddressSelectionWidget> {
         const SizedBox(height: 8),
         if (_isAddressSearch)
           AddressSearchWidget(
-            onLocationSelected: (Location location) => storeViewModel.setLocation(location),
+            onLocationSelected: (Location location) {
+              storeViewModel.setLocation(location);
+              widget.onLocationChanged?.call(location);
+            },
           )
         else
           OutlinedButton.icon(
@@ -74,6 +94,7 @@ class _AddressSelectionWidgetState extends State<AddressSelectionWidget> {
                       final location = await storeViewModel.reverseGeocode(coordinates);
                       if (location != null) {
                         storeViewModel.setLocation(location);
+                        widget.onLocationChanged?.call(location);
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text(storeViewModel.errorMessage ?? 'Lỗi không xác định')),

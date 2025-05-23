@@ -1,5 +1,3 @@
-// ignore_for_file: file_names
-
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:my_app/data/datasources/auth/authDatasource.dart';
@@ -27,6 +25,8 @@ import 'package:my_app/domain/usecases/getCurrentLocation.dart';
 import 'package:my_app/domain/usecases/getRoute.dart';
 import 'package:my_app/domain/usecases/getStores.dart';
 import 'package:my_app/domain/usecases/searchPlaces.dart';
+import 'package:my_app/domain/usecases/updateStore.dart';
+import 'package:my_app/domain/usecases/deleteStore.dart';
 import 'package:my_app/presentation/screens/auth/authViewModel.dart';
 import 'package:my_app/presentation/screens/map/mapViewModel.dart';
 import 'package:my_app/presentation/screens/search/searchPlacesViewModel.dart';
@@ -63,6 +63,8 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetRoute(sl()));
   sl.registerLazySingleton(() => SearchPlaces(sl()));
   sl.registerLazySingleton(() => CreateStore(sl()));
+  sl.registerLazySingleton(() => UpdateStore(sl()));
+  sl.registerLazySingleton(() => DeleteStore(sl()));
 
   // View models
   sl.registerFactory(() => AuthViewModel(
@@ -78,6 +80,8 @@ Future<void> init() async {
         searchPlacesUseCase: sl(),
         osmDataSource: sl(),
         getCurrentLocation: sl(),
+        updateStoreUseCase: sl(),
+        deleteStoreUseCase: sl(),
       ));
   sl.registerFactory(() => MapViewModel(
         getCurrentLocation: sl(),

@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:my_app/domain/entities/coordinates.dart';
 import 'package:my_app/presentation/screens/map/mapViewModel.dart';

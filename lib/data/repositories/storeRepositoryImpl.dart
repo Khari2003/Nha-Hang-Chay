@@ -1,5 +1,3 @@
-// ignore_for_file: file_names
-
 import 'package:dartz/dartz.dart';
 import 'package:my_app/core/errors/exceptions.dart';
 import 'package:my_app/core/errors/failures.dart';
@@ -30,6 +28,30 @@ class StoreRepositoryImpl implements StoreRepository {
     try {
       final createdStore = await dataSource.createStore(store as StoreModel);
       return Right(createdStore);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Unexpected error: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Store>> updateStore(String id, Store store) async {
+    try {
+      final updatedStore = await dataSource.updateStore(id, store as StoreModel);
+      return Right(updatedStore);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Unexpected error: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteStore(String id) async {
+    try {
+      await dataSource.deleteStore(id);
+      return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {

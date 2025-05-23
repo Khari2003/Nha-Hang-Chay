@@ -1,3 +1,4 @@
+// loginScreen.dart
 // ignore_for_file: depend_on_referenced_packages, library_private_types_in_public_api, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
@@ -17,6 +18,16 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fill email if available
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+    if (authViewModel.userEmail != null) {
+      _emailController.text = authViewModel.userEmail!;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                 textAlign: TextAlign.center,
                               ),
-                              const Spacer(flex: 2), 
+                              const Spacer(flex: 2),
                             ],
                           ),
                           const SizedBox(height: 16),

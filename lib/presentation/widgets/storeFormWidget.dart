@@ -1,11 +1,22 @@
-// ignore_for_file: file_names, depend_on_referenced_packages, library_private_types_in_public_api
+// ignore_for_file: depend_on_referenced_packages, library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
 import 'package:my_app/presentation/screens/store/storeViewModel.dart';
 import 'package:provider/provider.dart';
 
 class StoreFormWidget extends StatefulWidget {
-  const StoreFormWidget({super.key});
+  final String? initialName;
+  final String? initialDescription;
+  final String? initialPriceRange;
+  final String? initialType;
+
+  const StoreFormWidget({
+    super.key,
+    this.initialName,
+    this.initialDescription,
+    this.initialPriceRange,
+    this.initialType,
+  });
 
   @override
   _StoreFormWidgetState createState() => _StoreFormWidgetState();
@@ -18,21 +29,31 @@ class _StoreFormWidgetState extends State<StoreFormWidget> {
   String? _selectedType;
 
   final List<String> _storeTypes = [
-    'Di tích lịch sử',
-    'Bảo tàng',
-    'Di tích tự nhiên',
-    'Trung tâm giải trí',
-    'công viên',
-    'Di tích văn hóa',
-    'Di tích tôn giáo',
-    'Sở thú',
-    'Thủy cung',
-    'Nhà hàng',
-    'Địa điểm ngắm cảnh',
-    'Khác'
+    'Historical Site',
+    'Museum',
+    'Natural Landmark',
+    'Entertainment Center',
+    'Park',
+    'Cultural Site',
+    'Religious Site',
+    'Zoo',
+    'Aquarium',
+    'Restaurant',
+    'Scenic Spot',
+    'Cinema',
+    'Other'
   ];
 
-  final List<String> _priceRanges = ['Miễn phí','Thấp', 'Hợp lý', 'Cao cấp', 'Sang trọng'];
+  final List<String> _priceRanges = ['Free', 'Low', 'Moderate', 'High', 'Luxury'];
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController.text = widget.initialName ?? '';
+    _descriptionController.text = widget.initialDescription ?? '';
+    _priceRangeController.text = _priceRanges.contains(widget.initialPriceRange) ? widget.initialPriceRange ?? '' : '';
+    _selectedType = _storeTypes.contains(widget.initialType) ? widget.initialType : null;
+  }
 
   @override
   void dispose() {
@@ -44,47 +65,49 @@ class _StoreFormWidgetState extends State<StoreFormWidget> {
 
   @override
   Widget build(BuildContext context) {
-    Provider.of<StoreViewModel>(context, listen: false); // Đảm bảo truy cập StoreViewModel
+    Provider.of<StoreViewModel>(context, listen: false);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextFormField(
           controller: _nameController,
           decoration: const InputDecoration(
-            labelText: 'Tên cửa hàng',
+            labelText: 'Store Name',
             border: OutlineInputBorder(),
           ),
-          validator: (value) => value!.isEmpty ? 'Vui lòng nhập tên cửa hàng' : null,
+          validator: (value) => value!.isEmpty ? 'Please enter store name' : null,
         ),
         const SizedBox(height: 16),
         DropdownButtonFormField<String>(
           value: _selectedType,
           decoration: const InputDecoration(
-            labelText: 'Loại cửa hàng',
+            labelText: 'Store Type',
             border: OutlineInputBorder(),
           ),
           items: _storeTypes
               .map((type) => DropdownMenuItem(
                     value: type,
-                    child: Text(type.replaceAll('_', ' ').toUpperCase()),
+                    child: Text(type),
                   ))
               .toList(),
           onChanged: (value) => setState(() => _selectedType = value),
-          validator: (value) => value == null ? 'Vui lòng chọn loại cửa hàng' : null,
+          validator: (value) => value == null ? 'Please select store type' : null,
         ),
         const SizedBox(height: 16),
         TextFormField(
           controller: _descriptionController,
           decoration: const InputDecoration(
-            labelText: 'Mô tả (tùy chọn)',
+            labelText: 'Description (Optional)',
             border: OutlineInputBorder(),
           ),
         ),
         const SizedBox(height: 16),
         DropdownButtonFormField<String>(
-          value: _priceRangeController.text.isNotEmpty ? _priceRangeController.text : null,
+          value: _priceRangeController.text.isNotEmpty && _priceRanges.contains(_priceRangeController.text)
+              ? _priceRangeController.text
+              : null,
           decoration: const InputDecoration(
-            labelText: 'Mức giá',
+            labelText: 'Price Range',
             border: OutlineInputBorder(),
           ),
           items: _priceRanges
@@ -93,19 +116,21 @@ class _StoreFormWidgetState extends State<StoreFormWidget> {
                     child: Text(range),
                   ))
               .toList(),
-          onChanged: (value) => _priceRangeController.text = value ?? '',
-          validator: (value) => value == null ? 'Vui lòng chọn mức giá' : null,
+          onChanged: (value) {
+            setState(() {
+              _priceRangeController.text = value ?? '';
+            });
+          },
+          validator: (value) => value == null ? 'Please select price range' : null,
         ),
       ],
     );
   }
 
-  // Getter để truy cập dữ liệu từ state
-  String? get name => _nameController.text;
+  String? get name => _nameController.text.isNotEmpty ? _nameController.text : null;
   String? get description => _descriptionController.text.isNotEmpty ? _descriptionController.text : null;
-  String? get priceRange => _priceRangeController.text;
+  String? get priceRange => _priceRangeController.text.isNotEmpty ? _priceRangeController.text : null;
   String? get type => _selectedType;
 }
 
-// Key để truy cập state từ bên ngoài
 final GlobalKey<_StoreFormWidgetState> storeFormKey = GlobalKey<_StoreFormWidgetState>();

@@ -1,4 +1,4 @@
-// ignore_for_file: file_names, library_private_types_in_public_api, depend_on_referenced_packages, use_build_context_synchronously
+// ignore_for_file: file_names, library_private_types_in_public_api, depend_on_referenced_packages, use_build_context_synchronously, deprecated_member_use
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -353,6 +353,8 @@ class _MapScreenState extends State<MapScreen> {
                                         imageURLs: viewModel.selectedStore!.images,
                                         type: viewModel.selectedStore!.type,
                                         isApproved: viewModel.selectedStore!.isApproved,
+                                        owner: viewModel.selectedStore!.owner, 
+                                        id: viewModel.selectedStore!.id,
                                         onGetDirections: () {
                                           if (viewModel.selectedStore!.location?.coordinates != null) {
                                             viewModel.updateRouteToStore(

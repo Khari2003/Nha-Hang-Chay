@@ -1,9 +1,24 @@
-// ignore_for_file: file_names
-
 import 'package:equatable/equatable.dart';
 import 'package:my_app/domain/entities/location.dart';
 import 'package:my_app/domain/entities/coordinates.dart';
 import 'package:my_app/domain/entities/store.dart';
+
+// Define valid store types matching server enum
+const List<String> validStoreTypes = [
+  'Historical Site',
+  'Museum',
+  'Natural Landmark',
+  'Entertainment Center',
+  'Park',
+  'Cultural Site',
+  'Religious Site',
+  'Zoo',
+  'Aquarium',
+  'Restaurant',
+  'Scenic Spot',
+  'Cinema',
+  'Other',
+];
 
 class StoreModel extends Store with EquatableMixin {
   StoreModel({
@@ -43,7 +58,7 @@ class StoreModel extends Store with EquatableMixin {
               coordinates: coordinates,
             )
           : null,
-      priceRange: json['priceRange'] as String? ?? '\$',
+      priceRange: json['priceRange'] as String? ?? 'Moderate',
       images: List<String>.from(json['images'] ?? []),
       owner: json['owner'] as String?,
       reviews: json['reviews'] != null ? List<String>.from(json['reviews']) : null,
@@ -56,7 +71,7 @@ class StoreModel extends Store with EquatableMixin {
     return {
       '_id': id,
       'name': name,
-      'type': type,
+      'type': type, // Preserve original case
       'description': description,
       'location': location != null
           ? {
