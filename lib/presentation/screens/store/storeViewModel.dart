@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:my_app/core/errors/exceptions.dart';
 import 'package:my_app/data/models/storeModel.dart';
 import 'package:my_app/domain/entities/location.dart';
+import 'package:my_app/domain/entities/store.dart';
 import 'package:my_app/domain/usecases/createStore.dart';
 import 'package:my_app/domain/usecases/getCurrentLocation.dart';
 import 'package:my_app/domain/usecases/searchPlaces.dart';
@@ -35,17 +36,43 @@ class StoreViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   List<XFile> _selectedImages = [];
+  List<MenuItem> _menuItems = [];
 
   Coordinates? get currentLocation => _currentLocation;
   Location? get selectedLocation => _selectedLocation;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   List<XFile> get selectedImages => _selectedImages;
+  List<MenuItem> get menuItems => _menuItems;
 
   // Set selected images
   void setSelectedImages(List<XFile> images) {
     _selectedImages = images;
+    _errorMessage = null;
     notifyListeners();
+  }
+
+  // Set menu items
+  void setMenuItems(List<MenuItem> items) {
+    _menuItems = items;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  // Add a menu item
+  void addMenuItem(MenuItem item) {
+    _menuItems.add(item);
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  // Remove a menu item
+  void removeMenuItem(int index) {
+    if (index >= 0 && index < _menuItems.length) {
+      _menuItems.removeAt(index);
+      _errorMessage = null;
+      notifyListeners();
+    }
   }
 
   // Cloudinary configuration
@@ -141,8 +168,11 @@ class StoreViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      if (store.location?.coordinates == null) {
+        throw ServerException('Vị trí tọa độ là bắt buộc');
+      }
       final imageUrls = await uploadImages(_selectedImages);
-      final updatedStore = store.copyWith(images: imageUrls);
+      final updatedStore = store.copyWith(images: imageUrls, menu: _menuItems);
 
       final result = await createStoreUseCase(updatedStore);
       result.fold(
@@ -154,6 +184,7 @@ class StoreViewModel extends ChangeNotifier {
         (_) {
           _errorMessage = null;
           _selectedImages.clear();
+          _menuItems.clear();
           notifyListeners();
         },
       );
@@ -176,8 +207,14 @@ class StoreViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      if (store.location?.coordinates == null) {
+        throw ServerException('Vị trí tọa độ là bắt buộc');
+      }
       final imageUrls = await uploadImages(_selectedImages);
-      final updatedStore = store.copyWith(images: imageUrls.isNotEmpty ? imageUrls : store.images);
+      final updatedStore = store.copyWith(
+        images: imageUrls.isNotEmpty ? imageUrls : store.images,
+        menu: _menuItems.isNotEmpty ? _menuItems : store.menu,
+      );
 
       final result = await updateStoreUseCase(id, updatedStore);
       result.fold(
@@ -189,6 +226,7 @@ class StoreViewModel extends ChangeNotifier {
         (_) {
           _errorMessage = null;
           _selectedImages.clear();
+          _menuItems.clear();
           notifyListeners();
         },
       );
@@ -307,6 +345,7 @@ extension StoreModelExtension on StoreModel {
     String? description,
     Location? location,
     String? priceRange,
+    List<MenuItem>? menu,
     List<String>? images,
     String? owner,
     List<String>? reviews,
@@ -320,6 +359,7 @@ extension StoreModelExtension on StoreModel {
       description: description ?? this.description,
       location: location ?? this.location,
       priceRange: priceRange ?? this.priceRange,
+      menu: menu ?? this.menu,
       images: images ?? this.images,
       owner: owner ?? this.owner,
       reviews: reviews ?? this.reviews,

@@ -53,9 +53,9 @@ class SubmitButtonWidget extends StatelessWidget {
         );
         return;
       }
-      if (storeViewModel.selectedLocation == null) {
+      if (storeViewModel.selectedLocation == null || storeViewModel.selectedLocation?.coordinates == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Vui lòng chọn địa chỉ')),
+          const SnackBar(content: Text('Vui lòng chọn địa chỉ có tọa độ')),
         );
         return;
       }
@@ -67,6 +67,7 @@ class SubmitButtonWidget extends StatelessWidget {
         description: formState.description,
         location: storeViewModel.selectedLocation,
         priceRange: formState.priceRange!,
+        menu: storeViewModel.menuItems,
         images: [],
         owner: authViewModel.auth?.id,
         reviews: null,

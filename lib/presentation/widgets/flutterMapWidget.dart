@@ -13,20 +13,21 @@ import 'package:my_app/domain/entities/store.dart';
 import 'package:my_app/core/utils/buildMarkers.dart';
 import 'package:my_app/core/utils/dashPolyline.dart';
 
+// Widget hiển thị bản đồ với các marker, lộ trình và vùng bán kính
 class FlutterMapWidget extends StatefulWidget {
-  final MapController mapController;
-  final Coordinates currentLocation;
-  final double radius;
-  final bool isNavigating;
-  final double? userHeading;
-  final Store? navigatingStore;
-  final List<Store> filteredStores;
-  final List<Coordinates> routeCoordinates;
-  final String routeType;
-  final Function(Store) onStoreTap;
-  final Coordinates? searchedLocation;
-  final Coordinates? regionLocation;
-  final double? regionRadius;
+  final MapController mapController; // Controller để điều khiển bản đồ
+  final Coordinates currentLocation; // Vị trí hiện tại của người dùng
+  final double radius; // Bán kính tìm kiếm (mét)
+  final bool isNavigating; // Trạng thái đang điều hướng
+  final double? userHeading; // Hướng di chuyển của người dùng (độ)
+  final Store? navigatingStore; // Cửa hàng đang điều hướng tới
+  final List<Store> filteredStores; // Danh sách cửa hàng đã lọc
+  final List<Coordinates> routeCoordinates; // Danh sách tọa độ lộ trình
+  final String routeType; // Loại lộ trình (driving/walking)
+  final Function(Store) onStoreTap; // Callback khi nhấn vào marker cửa hàng
+  final Coordinates? searchedLocation; // Vị trí tìm kiếm
+  final Coordinates? regionLocation; // Vị trí vùng tìm kiếm
+  final double? regionRadius; // Bán kính vùng tìm kiếm
 
   const FlutterMapWidget({
     super.key,
@@ -49,11 +50,13 @@ class FlutterMapWidget extends StatefulWidget {
   _FlutterMapWidgetState createState() => _FlutterMapWidgetState();
 }
 
+// Trạng thái của FlutterMapWidget
 class _FlutterMapWidgetState extends State<FlutterMapWidget> {
-  late LatLng animatedLocation;
-  Timer? movementTimer;
-  final PopupController _popupController = PopupController();
+  late LatLng animatedLocation; // Vị trí hiện tại được làm mượt
+  Timer? movementTimer; // Timer để điều chỉnh chuyển động mượt
+  final PopupController _popupController = PopupController(); // Controller cho popup marker
 
+  // Khởi tạo trạng thái
   @override
   void initState() {
     super.initState();
@@ -61,18 +64,21 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
     _startSmoothMovement();
   }
 
+  // Cập nhật khi widget thay đổi
   @override
   void didUpdateWidget(covariant FlutterMapWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // Kích hoạt chuyển động mượt khi vị trí hiện tại thay đổi
     if (oldWidget.currentLocation != widget.currentLocation) {
       _startSmoothMovement();
     }
   }
 
+  // Bắt đầu chuyển động mượt cho vị trí người dùng
   void _startSmoothMovement() {
     movementTimer?.cancel();
-    const duration = Duration(milliseconds: 100);
-    const double threshold = 0.0001;
+    const duration = Duration(milliseconds: 100); // Thời gian cập nhật
+    const double threshold = 0.0001; // Ngưỡng để dừng chuyển động
     movementTimer = Timer.periodic(duration, (timer) {
       setState(() {
         animatedLocation = LatLng(
@@ -82,6 +88,7 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
               (widget.currentLocation.longitude - animatedLocation.longitude) * 0.2,
         );
       });
+      // Dừng timer nếu vị trí gần với vị trí mục tiêu
       if ((animatedLocation.latitude - widget.currentLocation.latitude).abs() < threshold &&
           (animatedLocation.longitude - widget.currentLocation.longitude).abs() < threshold) {
         timer.cancel();
@@ -92,13 +99,15 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
     });
   }
 
+  // Xây dựng giao diện bản đồ
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<CompassEvent>(
-      stream: FlutterCompass.events,
+      stream: FlutterCompass.events, // Lắng nghe dữ liệu la bàn
       builder: (context, snapshot) {
-        final heading = snapshot.data?.heading ?? 0;
+        final heading = snapshot.data?.heading ?? 0; // Góc hướng hiện tại
 
+        // Xoay bản đồ khi đang điều hướng
         if (widget.isNavigating) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             widget.mapController.rotate(-heading);
@@ -109,6 +118,7 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
           });
         }
 
+        // Lọc các cửa hàng hợp lệ (có vị trí và tọa độ)
         final validStores = widget.filteredStores
             .where((store) => store.location != null && store.location!.coordinates != null)
             .toList();
@@ -116,14 +126,16 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
         return FlutterMap(
           mapController: widget.mapController,
           options: MapOptions(
-            initialCenter: animatedLocation,
-            initialZoom: widget.isNavigating ? 20.0 : 14.0,
+            initialCenter: animatedLocation, // Tâm bản đồ ban đầu
+            initialZoom: widget.isNavigating ? 20.0 : 14.0, // Mức zoom
           ),
           children: [
+            // Lớp bản đồ từ OpenStreetMap
             TileLayer(
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'my_app',
             ),
+            // Vùng bán kính xung quanh vị trí hiện tại
             if (!widget.isNavigating)
               CircleLayer(
                 circles: [
@@ -137,6 +149,7 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
                   ),
                 ],
               ),
+            // Vùng bán kính của vùng tìm kiếm
             if (widget.regionLocation != null && widget.regionRadius != null)
               CircleLayer(
                 circles: [
@@ -150,6 +163,7 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
                   ),
                 ],
               ),
+            // Lớp marker với popup
             PopupMarkerLayer(
               options: PopupMarkerLayerOptions(
                 popupController: _popupController,
@@ -164,19 +178,22 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
                 ),
                 popupDisplayOptions: PopupDisplayOptions(
                   builder: (BuildContext context, Marker marker) {
+                    // Tìm cửa hàng tương ứng với marker
                     final store = validStores.firstWhere(
                       (store) =>
                           store.location!.coordinates!.toLatLng() == marker.point,
                       orElse: () => StoreModel(
                         id: '',
                         name: 'Unknown',
-                        type: 'unknown',
-                        priceRange: '',
+                        type: 'chay-hien-dai',
+                        priceRange: 'Moderate',
+                        menu: [],
                         images: [],
                         isApproved: false,
                         createdAt: DateTime.now(),
                       ),
                     );
+                    // Hiển thị popup với thông tin cửa hàng
                     return Card(
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -196,7 +213,9 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
                             Text('Địa chỉ: ${store.location?.address ?? 'Không có địa chỉ'}'),
                             Text('Thành phố: ${store.location?.city ?? 'Không xác định'}'),
                             Text('Quốc gia: ${store.location?.country ?? 'Không xác định'}'),
-                            Text('Giá: ${store.priceRange}'),
+                            Text('Mức giá: ${store.priceRange}'),
+                            if (store.menu.isNotEmpty)
+                              Text('Thực đơn: ${store.menu.map((item) => "${item.name} (${item.price})").join(", ")}'),
                             if (store.location?.coordinates != null)
                               Text('Tọa độ: (${store.location!.coordinates!.latitude}, ${store.location!.coordinates!.longitude})'),
                           ],
@@ -207,6 +226,7 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
                 ),
               ),
             ),
+            // Lớp lộ trình
             if (widget.routeCoordinates.isNotEmpty)
               PolylineLayer(
                 polylines: widget.routeType == 'walking'
@@ -226,6 +246,7 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
     );
   }
 
+  // Giải phóng tài nguyên
   @override
   void dispose() {
     movementTimer?.cancel();
@@ -233,6 +254,7 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
   }
 }
 
+// Extension để chuyển đổi Coordinates thành LatLng
 extension LocationExtension on Coordinates {
   LatLng toLatLng() => LatLng(latitude, longitude);
 }

@@ -5,19 +5,12 @@ import 'package:my_app/domain/entities/store.dart';
 
 // Define valid store types matching server enum
 const List<String> validStoreTypes = [
-  'Historical Site',
-  'Museum',
-  'Natural Landmark',
-  'Entertainment Center',
-  'Park',
-  'Cultural Site',
-  'Religious Site',
-  'Zoo',
-  'Aquarium',
-  'Restaurant',
-  'Scenic Spot',
-  'Cinema',
-  'Other',
+  'chay-phat-giao',
+  'chay-a-au',
+  'chay-hien-dai',
+  'com-chay-binh-dan',
+  'buffet-chay',
+  'chay-ton-giao-khac',
 ];
 
 class StoreModel extends Store with EquatableMixin {
@@ -28,6 +21,7 @@ class StoreModel extends Store with EquatableMixin {
     super.description,
     super.location,
     required super.priceRange,
+    required super.menu,
     required super.images,
     super.owner,
     super.reviews,
@@ -59,6 +53,13 @@ class StoreModel extends Store with EquatableMixin {
             )
           : null,
       priceRange: json['priceRange'] as String? ?? 'Moderate',
+      menu: (json['menu'] as List<dynamic>?)
+              ?.map((item) => MenuItem(
+                    name: item['name'] as String,
+                    price: (item['price'] as num).toDouble(),
+                  ))
+              .toList() ??
+          [],
       images: List<String>.from(json['images'] ?? []),
       owner: json['owner'] as String?,
       reviews: json['reviews'] != null ? List<String>.from(json['reviews']) : null,
@@ -71,7 +72,7 @@ class StoreModel extends Store with EquatableMixin {
     return {
       '_id': id,
       'name': name,
-      'type': type, // Preserve original case
+      'type': type,
       'description': description,
       'location': location != null
           ? {
@@ -91,6 +92,12 @@ class StoreModel extends Store with EquatableMixin {
             }
           : null,
       'priceRange': priceRange,
+      'menu': menu
+          .map((item) => {
+                'name': item.name,
+                'price': item.price,
+              })
+          .toList(),
       'images': images,
       'owner': owner,
       'reviews': reviews,
@@ -107,6 +114,7 @@ class StoreModel extends Store with EquatableMixin {
         description,
         location,
         priceRange,
+        menu,
         images,
         owner,
         reviews,
@@ -117,6 +125,6 @@ class StoreModel extends Store with EquatableMixin {
   @override
   String toString() {
     return 'StoreModel(id: $id, name: $name, type: $type, description: $description, location: $location, '
-        'priceRange: $priceRange, images: $images, owner: $owner, reviews: $reviews, isApproved: $isApproved, createdAt: $createdAt)';
+        'priceRange: $priceRange, menu: $menu, images: $images, owner: $owner, reviews: $reviews, isApproved: $isApproved, createdAt: $createdAt)';
   }
 }

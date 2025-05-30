@@ -30,6 +30,7 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
     final storeViewModel = Provider.of<StoreViewModel>(context, listen: false);
     storeViewModel.setLocation(widget.store.location ?? Location(address: '', city: '', coordinates: null));
     storeViewModel.setSelectedImages([]);
+    storeViewModel.setMenuItems(widget.store.menu);
   }
 
   Future<void> _saveStore() async {
@@ -43,6 +44,13 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
         return;
       }
 
+      if (storeViewModel.selectedLocation?.coordinates == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Vui lòng chọn vị trí có tọa độ')),
+        );
+        return;
+      }
+
       final updatedStore = StoreModel(
         id: widget.store.id,
         name: formState.name ?? widget.store.name,
@@ -50,6 +58,7 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
         description: formState.description,
         location: storeViewModel.selectedLocation ?? widget.store.location,
         priceRange: formState.priceRange ?? widget.store.priceRange,
+        menu: storeViewModel.menuItems,
         images: widget.store.images,
         owner: widget.store.owner,
         reviews: widget.store.reviews,
@@ -59,12 +68,7 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
 
       setState(() => _isLoading = true);
 
-      List<String> imageUrls = widget.store.images;
-      if (storeViewModel.selectedImages.isNotEmpty) {
-        imageUrls = await storeViewModel.uploadImages(storeViewModel.selectedImages);
-      }
-
-      await storeViewModel.updateStore(widget.store.id!, updatedStore.copyWith(images: imageUrls));
+      await storeViewModel.updateStore(widget.store.id!, updatedStore);
 
       setState(() => _isLoading = false);
 
@@ -149,6 +153,8 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
                               initialName: widget.store.name,
                               initialDescription: widget.store.description,
                               initialPriceRange: initialPriceRange,
+                              initialType: widget.store.type,
+                              initialMenu: widget.store.menu,
                             ),
                             const SizedBox(height: 24),
                             const Text(
@@ -188,7 +194,7 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
                               children: [
                                 Expanded(
                                   child: SizedBox(
-                                    height: 48, // Fixed height for consistency
+                                    height: 48,
                                     child: ElevatedButton(
                                       onPressed: _isLoading ? null : _saveStore,
                                       style: ElevatedButton.styleFrom(
@@ -213,7 +219,7 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: SizedBox(
-                                    height: 48, // Fixed height for consistency
+                                    height: 48,
                                     child: ElevatedButton(
                                       onPressed: _isLoading
                                           ? null

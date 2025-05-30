@@ -60,7 +60,10 @@ class _SearchPlacesState extends State<SearchPlaces> {
           setState(() {
             _exactSuggestions = results
                 .where((place) =>
-                    place.type == "road" || place.type == "house_number")
+                    place.type == "road" ||
+                    place.type == "house_number" ||
+                    place.coordinates.latitude != 0 ||
+                    place.coordinates.longitude != 0)
                 .toList();
             _updateSuggestions();
           });
@@ -116,6 +119,8 @@ class _SearchPlacesState extends State<SearchPlaces> {
 
       setState(() {
         _regionSuggestions = results
+            .where((place) =>
+                place.coordinates.latitude != 0 && place.coordinates.longitude != 0)
             .map((result) => SearchResult(
                   name: name,
                   coordinates: result.coordinates,

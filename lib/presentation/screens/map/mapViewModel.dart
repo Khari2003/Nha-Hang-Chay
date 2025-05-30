@@ -10,62 +10,73 @@ import 'package:my_app/domain/usecases/getCurrentLocation.dart';
 import 'package:my_app/domain/usecases/getStores.dart';
 import 'package:my_app/domain/usecases/getRoute.dart';
 
+// Lớp MapViewModel quản lý trạng thái và logic cho bản đồ
 class MapViewModel extends ChangeNotifier {
+  // Các usecase để lấy vị trí hiện tại, danh sách cửa hàng và lộ trình
   final GetCurrentLocation getCurrentLocation;
   final GetStores getStores;
   final GetRoute getRoute;
 
+  // Constructor khởi tạo với các usecase bắt buộc
   MapViewModel({
     required this.getCurrentLocation,
     required this.getStores,
     required this.getRoute,
   });
 
+  // Biến lưu trữ vị trí hiện tại của người dùng
   Coordinates? _currentLocation;
+  // Danh sách tất cả cửa hàng
   List<Store> _allStores = [];
+  // Danh sách cửa hàng đã lọc theo tiêu chí
   List<Store> _filteredStores = [];
+  // Danh sách tọa độ của lộ trình
   List<Coordinates> _routeCoordinates = [];
+  // Bán kính tìm kiếm (mét)
   double _radius = 1000.0;
+  // Trạng thái hiển thị danh sách cửa hàng
   bool _isStoreListVisible = false;
+  // Trạng thái đang điều hướng
   bool _isNavigating = false;
+  // Hướng di chuyển của người dùng (độ)
   double? _userHeading;
+  // Cửa hàng được chọn
   Store? _selectedStore;
+  // Cửa hàng đang điều hướng tới
   Store? _navigatingStore;
+  // Loại lộ trình (driving/walking)
   String _routeType = 'driving';
+  // Vị trí tìm kiếm
   Coordinates? _searchedLocation;
+  // Vị trí vùng tìm kiếm
   Coordinates? _regionLocation;
+  // Tên vùng tìm kiếm
   String? _regionName;
+  // Trạng thái hiển thị thanh trượt bán kính vùng
   bool _showRegionRadiusSlider = false;
 
-  // Selected types and price ranges
+  // Danh sách loại cửa hàng và mức giá được chọn để lọc
   final List<String> _selectedTypes = [];
   final List<String> _selectedPriceRanges = [];
 
-  // Available types and price ranges
+  // Danh sách các loại cửa hàng có sẵn
   static const List<String> availableTypes = [
-    'Historical Site',
-    'Museum',
-    'Natural Landmark',
-    'Entertainment Center',
-    'Park',
-    'Cultural Site',
-    'Religious Site',
-    'Zoo',
-    'Aquarium',
-    'Restaurant',
-    'Scenic Spot',
-    'Cinema',
-    'Other',
+    'chay-phat-giao',
+    'chay-a-au',
+    'chay-hien-dai',
+    'com-chay-binh-dan',
+    'buffet-chay',
+    'chay-ton-giao-khac',
   ];
 
+  // Danh sách các mức giá có sẵn
   static const List<String> availablePriceRanges = [
-    'Free',
     'Low',
     'Moderate',
     'High',
-    'Luxury',
   ];
 
+  // Getter để truy cập các thuộc tính
   Coordinates? get currentLocation => _currentLocation;
   List<Store> get filteredStores => _filteredStores;
   List<Coordinates> get routeCoordinates => _routeCoordinates;
@@ -83,8 +94,10 @@ class MapViewModel extends ChangeNotifier {
   List<String> get selectedTypes => _selectedTypes;
   List<String> get selectedPriceRanges => _selectedPriceRanges;
 
+  // Controller để điều khiển bản đồ
   final MapController _mapController = MapController();
 
+  // Lấy dữ liệu ban đầu: vị trí hiện tại và danh sách cửa hàng
   Future<void> fetchInitialData() async {
     final locationResult = await getCurrentLocation();
     final storesResult = await getStores();
@@ -107,6 +120,7 @@ class MapViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Cập nhật danh sách cửa hàng được lọc dựa trên vị trí, bán kính và bộ lọc
   void updateFilteredStores() {
     final center =
         _showRegionRadiusSlider && _regionLocation != null ? _regionLocation : _currentLocation;
@@ -137,22 +151,26 @@ class MapViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Cập nhật bán kính tìm kiếm và lọc lại cửa hàng
   void setRadius(double value) {
     _radius = value;
     updateFilteredStores();
     notifyListeners();
   }
 
+  // Chuyển đổi trạng thái hiển thị danh sách cửa hàng
   void toggleStoreListVisibility() {
     _isStoreListVisible = !_isStoreListVisible;
     notifyListeners();
   }
 
+  // Chọn cửa hàng
   void selectStore(Store? store) {
     _selectedStore = store;
     notifyListeners();
   }
 
+  // Chuyển đổi bộ lọc theo loại cửa hàng
   void toggleTypeFilter(String type) {
     if (_selectedTypes.contains(type)) {
       _selectedTypes.remove(type);
@@ -163,6 +181,7 @@ class MapViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Chuyển đổi bộ lọc theo mức giá
   void togglePriceRangeFilter(String priceRange) {
     if (_selectedPriceRanges.contains(priceRange)) {
       _selectedPriceRanges.remove(priceRange);
@@ -173,6 +192,7 @@ class MapViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Xóa tất cả bộ lọc
   void clearFilters() {
     _selectedTypes.clear();
     _selectedPriceRanges.clear();
@@ -180,6 +200,7 @@ class MapViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Cập nhật lộ trình đến cửa hàng được chọn
   Future<void> updateRouteToStore(Coordinates destination) async {
     if (_currentLocation == null) return;
 
@@ -198,6 +219,7 @@ class MapViewModel extends ChangeNotifier {
         _isStoreListVisible = false;
         notifyListeners();
 
+        // Tính toán trung tâm và mức zoom dựa trên khoảng cách
         final centerLat = (_currentLocation!.latitude + destination.latitude) / 2;
         final centerLng = (_currentLocation!.longitude + destination.longitude) / 2;
         final distance = const Distance().as(
@@ -222,6 +244,7 @@ class MapViewModel extends ChangeNotifier {
     );
   }
 
+  // Bắt đầu chế độ điều hướng
   void startNavigation() {
     if (_currentLocation != null) {
       _isNavigating = true;
@@ -231,6 +254,7 @@ class MapViewModel extends ChangeNotifier {
     }
   }
 
+  // Theo dõi vị trí và hướng di chuyển của người dùng
   void trackUserLocationAndDirection() {
     final locationService = loc.Location();
     locationService.onLocationChanged.listen((loc.LocationData position) async {
@@ -252,6 +276,7 @@ class MapViewModel extends ChangeNotifier {
     });
   }
 
+  // Kiểm tra xem người dùng có đang đi đúng lộ trình không
   Future<void> checkIfOnRoute(Coordinates userLocation) async {
     if (_routeCoordinates.isEmpty) return;
 
@@ -282,6 +307,7 @@ class MapViewModel extends ChangeNotifier {
     }
   }
 
+  // Kiểm tra xem người dùng đã đến đích chưa
   void checkIfArrived(Coordinates userLocation) {
     if (_routeCoordinates.isNotEmpty) {
       final destination = _routeCoordinates.last;
@@ -299,6 +325,7 @@ class MapViewModel extends ChangeNotifier {
     }
   }
 
+  // Đặt lại trạng thái ban đầu
   void resetToInitialState() {
     _isNavigating = false;
     _routeCoordinates.clear();
@@ -315,6 +342,7 @@ class MapViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Chuyển đổi giữa các loại lộ trình (driving/walking)
   void toggleRouteType() {
     _routeType = _routeType == 'driving' ? 'walking' : 'driving';
     if (_currentLocation != null && _routeCoordinates.isNotEmpty) {
@@ -323,6 +351,7 @@ class MapViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Cập nhật vị trí tìm kiếm hoặc vùng tìm kiếm
   void setSearchedLocation(Coordinates location, String type, String name, {double? radius}) {
     _searchedLocation = location;
     if (type == 'region') {
@@ -343,5 +372,11 @@ class MapViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Getter cho MapController
   MapController get mapController => _mapController;
+}
+
+// Extension để chuyển đổi Coordinates thành LatLng
+extension CoordinatesExtension on Coordinates {
+  LatLng toLatLng() => LatLng(latitude, longitude);
 }

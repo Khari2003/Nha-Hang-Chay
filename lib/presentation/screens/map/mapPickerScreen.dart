@@ -22,6 +22,7 @@ class MapPickerScreen extends StatefulWidget {
 class _MapPickerScreenState extends State<MapPickerScreen> {
   final MapController _mapController = MapController();
   late LatLng _mapCenter;
+  LatLng? _selectedLocation; // Biến để lưu vị trí được chọn
 
   @override
   void initState() {
@@ -45,70 +46,66 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
         ),
         backgroundColor: Theme.of(context).cardColor,
         elevation: 4,
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
         ),
       ),
-      body: Stack(
+      body: FlutterMap(
+        mapController: _mapController,
+        options: MapOptions(
+          initialCenter: _mapCenter,
+          initialZoom: 13.0,
+          onTap: (tapPosition, point) {
+            setState(() {
+              _selectedLocation = point; // Cập nhật vị trí được chọn
+            });
+            // Di chuyển bản đồ đến vị trí được chạm
+            _mapController.move(point, _mapController.camera.zoom);
+          },
+        ),
         children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: _mapCenter,
-              initialZoom: 13.0,
-              onTap: (tapPosition, point) {
-                setState(() {
-                  _mapCenter = point; // Update the pin position to the tapped location
-                });
-                // Optionally, move the map to center on the tapped location
-                _mapController.move(point, _mapController.camera.zoom);
-              },
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                subdomains: ['a', 'b', 'c'],
-                tileBuilder: (context, widget, tile) {
-                  return ColorFiltered(
-                    colorFilter: ColorFilter.mode(
-                      Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey.shade800.withOpacity(0.2)
-                          : Colors.white.withOpacity(0.8),
-                      BlendMode.modulate,
-                    ),
-                    child: widget,
-                  );
-                },
-              ),
-              CircleLayer(
-                circles: [
-                  CircleMarker(
-                    point: _mapCenter,
-                    radius: 50,
-                    color: Theme.of(context).primaryColor.withOpacity(0.3),
-                    borderColor: Theme.of(context).primaryColor,
-                    borderStrokeWidth: 3,
-                    useRadiusInMeter: true,
+          TileLayer(
+            urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            subdomains: const ['a', 'b', 'c'],
+            tileBuilder: (context, widget, tile) {
+              return ColorFiltered(
+                colorFilter: ColorFilter.mode(
+                  Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey.shade800.withOpacity(0.2)
+                      : Colors.white.withOpacity(0.8),
+                  BlendMode.modulate,
+                ),
+                child: widget,
+              );
+            },
+          ),
+          if (_selectedLocation != null) // Chỉ hiển thị MarkerLayer khi có vị trí được chọn
+            MarkerLayer(
+              markers: [
+                Marker(
+                  point: _selectedLocation!,
+                  width: 40,
+                  height: 40,
+                  child: Icon(
+                    Icons.location_pin,
+                    color: Theme.of(context).primaryColor,
+                    size: 40,
                   ),
-                ],
-              ),
-            ],
-          ),
-          Center(
-            child: AnimatedOpacity(
-              opacity: 1.0,
-              duration: const Duration(milliseconds: 300),
-              child: Icon(
-                Icons.location_pin,
-                color: Theme.of(context).primaryColor,
-                size: 40,
-              ),
+                ),
+              ],
             ),
-          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
+          if (_selectedLocation == null ||
+              (_selectedLocation!.latitude == 0 &&
+                  _selectedLocation!.longitude == 0)) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Vui lòng chọn một vị trí hợp lệ')),
+            );
+            return;
+          }
           showDialog(
             context: context,
             barrierDismissible: false,
@@ -119,8 +116,8 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
             ),
           );
           final selectedLocation = Coordinates(
-            latitude: _mapCenter.latitude,
-            longitude: _mapCenter.longitude,
+            latitude: _selectedLocation!.latitude,
+            longitude: _selectedLocation!.longitude,
           );
           await widget.onLocationSelected(selectedLocation);
           Navigator.pop(context); // Đóng dialog

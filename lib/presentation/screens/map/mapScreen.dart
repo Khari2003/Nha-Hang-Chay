@@ -7,24 +7,15 @@ import 'package:my_app/domain/usecases/getStores.dart';
 import 'package:my_app/domain/usecases/getRoute.dart';
 import 'package:my_app/presentation/screens/auth/authViewModel.dart';
 import 'package:my_app/presentation/screens/map/mapViewModel.dart';
-import 'package:my_app/presentation/widgets/buttons/authButton.dart';
-import 'package:my_app/presentation/widgets/buttons/cancelAllButton.dart';
-import 'package:my_app/presentation/widgets/buttons/createStoreButton.dart';
-import 'package:my_app/presentation/widgets/buttons/endNavigationButton.dart';
-import 'package:my_app/presentation/widgets/buttons/myLocationButton.dart';
-import 'package:my_app/presentation/widgets/buttons/searchButton.dart';
-import 'package:my_app/presentation/widgets/buttons/startNavigationButton.dart';
-import 'package:my_app/presentation/widgets/buttons/toggleRouteTypeButton.dart';
-import 'package:my_app/presentation/widgets/buttons/toggleStoreListButton.dart';
-import 'package:my_app/presentation/widgets/buttons/toggleButtonsButton.dart';
+import 'package:my_app/presentation/widgets/mapWidgets/mapBottomWidget.dart';
+import 'package:my_app/presentation/widgets/mapWidgets/mapButtonsWidget.dart';
+import 'package:my_app/presentation/widgets/mapWidgets/mapStoreDetailWidget.dart';
 import 'package:my_app/core/constants/theme.dart';
-import 'package:my_app/presentation/widgets/StoreDetailWidget.dart';
 import 'package:my_app/presentation/widgets/flutterMapWidget.dart';
-import 'package:my_app/presentation/widgets/radiusSlider.dart';
-import 'package:my_app/presentation/widgets/storeListWidget.dart';
 import 'package:my_app/presentation/widgets/filterWidget.dart';
 import 'package:provider/provider.dart';
 
+// Widget chính hiển thị màn hình bản đồ
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
@@ -32,22 +23,28 @@ class MapScreen extends StatefulWidget {
   _MapScreenState createState() => _MapScreenState();
 }
 
+// Trạng thái của MapScreen
 class _MapScreenState extends State<MapScreen> {
+  // Biến kiểm soát hiển thị các nút
   bool areButtonsVisible = true;
+  // Timer để tự động ẩn nút sau 10 giây
   Timer? _hideButtonsTimer;
 
+  // Khởi tạo trạng thái
   @override
   void initState() {
     super.initState();
     _startHideButtonsTimer();
   }
 
+  // Giải phóng tài nguyên
   @override
   void dispose() {
     _hideButtonsTimer?.cancel();
     super.dispose();
   }
 
+  // Bắt đầu timer để ẩn các nút sau 10 giây
   void _startHideButtonsTimer() {
     _hideButtonsTimer?.cancel();
     _hideButtonsTimer = Timer(const Duration(seconds: 10), () {
@@ -59,6 +56,7 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
+  // Chuyển đổi trạng thái hiển thị các nút
   void _toggleButtons() {
     setState(() {
       areButtonsVisible = !areButtonsVisible;
@@ -68,10 +66,12 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  // Xử lý khi nút được nhấn, khởi động lại timer ẩn nút
   void _onButtonPressed() {
     _startHideButtonsTimer();
   }
 
+  // Hiển thị bottom sheet chứa bộ lọc
   void _showFilterSheet(MapViewModel viewModel) {
     showModalBottomSheet(
       context: context,
@@ -82,6 +82,7 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
+  // Xây dựng giao diện chính
   @override
   Widget build(BuildContext context) {
     final authViewModel = Provider.of<AuthViewModel>(context);
@@ -89,6 +90,7 @@ class _MapScreenState extends State<MapScreen> {
     return Theme(
       data: appTheme(),
       child: ChangeNotifierProvider(
+        // Khởi tạo MapViewModel với các usecase
         create: (context) => MapViewModel(
           getCurrentLocation: Provider.of<GetCurrentLocation>(context, listen: false),
           getStores: Provider.of<GetStores>(context, listen: false),
@@ -96,19 +98,10 @@ class _MapScreenState extends State<MapScreen> {
         )..fetchInitialData(),
         child: Consumer<MapViewModel>(
           builder: (context, viewModel, child) {
-            double baseTop = authViewModel.auth?.accessToken != null ? 144.0 : 80.0;
-            double authButtonTop = baseTop + 64.0;
-            double startNavigationTop = authButtonTop;
-            double endNavigationTop = startNavigationTop;
-            double cancelAllTop = viewModel.isNavigating
-                ? endNavigationTop + 64.0
-                : viewModel.routeCoordinates.isNotEmpty
-                    ? startNavigationTop + 64.0
-                    : authButtonTop;
-
             return Scaffold(
               body: SafeArea(
                 child: GestureDetector(
+                  // Khi chạm vào màn hình, bỏ chọn cửa hàng
                   onTap: () {
                     viewModel.selectStore(null);
                     _onButtonPressed();
@@ -121,6 +114,7 @@ class _MapScreenState extends State<MapScreen> {
                         )
                       : Stack(
                           children: [
+                            // Widget hiển thị bản đồ
                             FlutterMapWidget(
                               mapController: viewModel.mapController,
                               currentLocation: viewModel.currentLocation!,
@@ -140,240 +134,25 @@ class _MapScreenState extends State<MapScreen> {
                               regionRadius:
                                   viewModel.showRegionRadiusSlider ? viewModel.radius : null,
                             ),
-                            if (areButtonsVisible) ...[
-                              Positioned(
-                                top: 16.0,
-                                left: 16.0,
-                                child: GestureDetector(
-                                  child: SearchButton(viewModel: viewModel),
-                                ),
-                              ),
-                              Positioned(
-                                top: 80.0,
-                                right: 16.0,
-                                child: GestureDetector(
-                                  onTap: _onButtonPressed,
-                                  child: ToggleRouteTypeButton(viewModel: viewModel),
-                                ),
-                              ),
-                              if (authViewModel.auth?.accessToken != null)
-                                Positioned(
-                                  top: 144.0,
-                                  right: 16.0,
-                                  child: GestureDetector(
-                                    onTap: _onButtonPressed,
-                                    child: const CreateStoreButton(),
-                                  ),
-                                ),
-                              Positioned(
-                                top: authButtonTop,
-                                left: 16.0,
-                                child: GestureDetector(
-                                  onTap: _onButtonPressed,
-                                  child: const AuthButton(),
-                                ),
-                              ),
-                              if (viewModel.routeCoordinates.isNotEmpty &&
-                                  !viewModel.isNavigating)
-                                Positioned(
-                                  top: startNavigationTop,
-                                  right: 16.0,
-                                  child: GestureDetector(
-                                    onTap: _onButtonPressed,
-                                    child: StartNavigationButton(viewModel: viewModel),
-                                  ),
-                                ),
-                              if (viewModel.isNavigating)
-                                Positioned(
-                                  top: endNavigationTop,
-                                  right: 16.0,
-                                  child: GestureDetector(
-                                    onTap: _onButtonPressed,
-                                    child: EndNavigationButton(viewModel: viewModel),
-                                  ),
-                                ),
-                              Positioned(
-                                top: cancelAllTop,
-                                right: 16.0,
-                                child: GestureDetector(
-                                  onTap: _onButtonPressed,
-                                  child: CancelAllButton(viewModel: viewModel),
-                                ),
-                              ),
-                              Positioned(
-                                top: 16.0 + 64.0,
-                                left: 16.0,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    _showFilterSheet(viewModel);
-                                  },
-                                  child: FloatingActionButton(
-                                    onPressed: () => _showFilterSheet(viewModel),
-                                    backgroundColor: Theme.of(context).primaryColor,
-                                    foregroundColor: Colors.white,
-                                    elevation: 6,
-                                    hoverElevation: 10,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: const Icon(Icons.filter_list, size: 28),
-                                  ),
-                                ),
-                              ),
-                            ] else ...[
-                              Positioned(
-                                top: 16.0,
-                                right: 16.0,
-                                child: ToggleButtonsButton(onPressed: _toggleButtons),
-                              ),
-                            ],
-                            Positioned(
-                              bottom: 16.0,
-                              left: 16.0,
-                              right: 16.0,
-                              child: Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  Card(
-                                    elevation: 4,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    margin: const EdgeInsets.all(8.0),
-                                    child: Container(
-                                      constraints: BoxConstraints(
-                                        maxHeight: MediaQuery.of(context).size.height * 0.4,
-                                      ),
-                                      padding: const EdgeInsets.all(12.0),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).cardColor,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: SingleChildScrollView(
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            if (!viewModel.isNavigating)
-                                              viewModel.showRegionRadiusSlider &&
-                                                      viewModel.regionLocation != null
-                                                  ? RadiusSlider(
-                                                      locationName:
-                                                          viewModel.regionName ?? "Vùng đã chọn",
-                                                      lat: viewModel.regionLocation!.latitude,
-                                                      lon: viewModel.regionLocation!.longitude,
-                                                      radius: viewModel.radius,
-                                                      onRadiusChanged: (value) {
-                                                        viewModel.setRadius(value);
-                                                        _onButtonPressed();
-                                                      },
-                                                    )
-                                                  : RadiusSlider(
-                                                      locationName: "Vị trí hiện tại",
-                                                      lat: viewModel.currentLocation!.latitude,
-                                                      lon: viewModel.currentLocation!.longitude,
-                                                      radius: viewModel.radius,
-                                                      onRadiusChanged: (value) {
-                                                        viewModel.setRadius(value);
-                                                        _onButtonPressed();
-                                                      },
-                                                    ),
-                                            AnimatedContainer(
-                                              duration: const Duration(milliseconds: 300),
-                                              curve: Curves.easeInOut,
-                                              height: viewModel.isStoreListVisible ? 200.0 : 0.0,
-                                              child: ClipRRect(
-                                                borderRadius: const BorderRadius.vertical(
-                                                  bottom: Radius.circular(12.0),
-                                                ),
-                                                child: StoreListWidget(
-                                                  stores: viewModel.filteredStores,
-                                                  onSelectStore: (store) {
-                                                    viewModel.selectStore(store);
-                                                    _onButtonPressed();
-                                                  },
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: -24.0,
-                                    left: 16.0,
-                                    child: GestureDetector(
-                                      onTap: _onButtonPressed,
-                                      child: ToggleStoreListButton(viewModel: viewModel),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: -24.0,
-                                    right: 16.0,
-                                    child: GestureDetector(
-                                      onTap: _onButtonPressed,
-                                      child: MyLocationButton(viewModel: viewModel),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                            // Widget hiển thị các nút
+                            MapButtonsWidget(
+                              areButtonsVisible: areButtonsVisible,
+                              authViewModel: authViewModel,
+                              viewModel: viewModel,
+                              onButtonPressed: _onButtonPressed,
+                              onToggleButtons: _toggleButtons,
+                              onShowFilterSheet: () => _showFilterSheet(viewModel),
                             ),
+                            // Widget hiển thị thanh trượt bán kính và danh sách cửa hàng
+                            MapBottomWidget(
+                              viewModel: viewModel,
+                              onButtonPressed: _onButtonPressed,
+                            ),
+                            // Widget hiển thị chi tiết cửa hàng
                             if (viewModel.selectedStore != null)
-                              Positioned(
-                                bottom: 16.0,
-                                left: 16.0,
-                                right: 16.0,
-                                child: Card(
-                                  elevation: 6,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  margin: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.end,
-                                        children: [
-                                          IconButton(
-                                            icon: Icon(Icons.close, color: Theme.of(context).primaryColor),
-                                            onPressed: () {
-                                              viewModel.selectStore(null);
-                                              _onButtonPressed();
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                      StoreDetailWidget(
-                                        name: viewModel.selectedStore!.name,
-                                        city: viewModel.selectedStore!.location?.city,
-                                        address: viewModel.selectedStore!.location?.address,
-                                        coordinates: viewModel.selectedStore!.location?.coordinates,
-                                        priceRange: viewModel.selectedStore!.priceRange,
-                                        imageURLs: viewModel.selectedStore!.images,
-                                        type: viewModel.selectedStore!.type,
-                                        isApproved: viewModel.selectedStore!.isApproved,
-                                        owner: viewModel.selectedStore!.owner, 
-                                        id: viewModel.selectedStore!.id,
-                                        onGetDirections: () {
-                                          if (viewModel.selectedStore!.location?.coordinates != null) {
-                                            viewModel.updateRouteToStore(
-                                                viewModel.selectedStore!.location!.coordinates!);
-                                            _onButtonPressed();
-                                          } else {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                    'Không thể vẽ đường đi: Cửa hàng ${viewModel.selectedStore!.name} thiếu tọa độ.'),
-                                              ),
-                                            );
-                                            _onButtonPressed();
-                                          }
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                              MapStoreDetailWidget(
+                                viewModel: viewModel,
+                                onButtonPressed: _onButtonPressed,
                               ),
                           ],
                         ),

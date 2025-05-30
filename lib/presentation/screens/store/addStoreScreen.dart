@@ -37,6 +37,13 @@ class _AddStoreScreenState extends State<AddStoreScreen> {
       return;
     }
 
+    if (storeViewModel.selectedLocation?.coordinates == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng chọn vị trí có tọa độ')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     final store = StoreModel(
@@ -45,6 +52,7 @@ class _AddStoreScreenState extends State<AddStoreScreen> {
       description: formState.description,
       location: storeViewModel.selectedLocation,
       priceRange: formState.priceRange!,
+      menu: storeViewModel.menuItems,
       images: [],
       createdAt: DateTime.now(),
     );

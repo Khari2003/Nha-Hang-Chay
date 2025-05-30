@@ -7,6 +7,7 @@ class Store {
   final String? description;
   final Location? location;
   final String priceRange;
+  final List<MenuItem> menu;
   final List<String> images;
   final String? owner;
   final List<String>? reviews;
@@ -20,10 +21,21 @@ class Store {
     this.description,
     this.location,
     required this.priceRange,
+    required this.menu,
     required this.images,
     this.owner,
     this.reviews,
     this.isApproved = false,
     required this.createdAt,
+  });
+}
+
+class MenuItem {
+  final String name;
+  final double price;
+
+  MenuItem({
+    required this.name,
+    required this.price,
   });
 }

@@ -5,6 +5,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:my_app/data/models/storeModel.dart';
 import 'package:my_app/domain/entities/coordinates.dart';
 import 'package:my_app/domain/entities/location.dart';
+import 'package:my_app/domain/entities/store.dart';
 import 'package:my_app/domain/usecases/deleteStore.dart';
 import 'package:my_app/domain/usecases/updateStore.dart';
 import 'package:my_app/presentation/screens/store/storeViewModel.dart';
@@ -12,12 +13,14 @@ import 'package:provider/provider.dart';
 import 'package:my_app/presentation/screens/auth/authViewModel.dart';
 import 'package:my_app/presentation/screens/store/editStoreScreen.dart';
 
+// Widget hiển thị thông tin chi tiết của một cửa hàng
 class StoreDetailWidget extends StatelessWidget {
   final String name;
   final String? city;
   final String? address;
   final Coordinates? coordinates;
   final String? priceRange;
+  final List<MenuItem> menu;
   final List<String> imageURLs;
   final String type;
   final bool isApproved;
@@ -25,12 +28,14 @@ class StoreDetailWidget extends StatelessWidget {
   final String? id;
   final VoidCallback onGetDirections;
 
+  // Constructor với các thông tin cần thiết
   const StoreDetailWidget({
     required this.name,
     this.city,
     this.address,
     this.coordinates,
     this.priceRange,
+    required this.menu,
     required this.imageURLs,
     required this.type,
     required this.isApproved,
@@ -43,6 +48,7 @@ class StoreDetailWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authViewModel = Provider.of<AuthViewModel>(context);
+    // Kiểm tra xem người dùng có phải là chủ cửa hàng hoặc admin không
     final isOwnerOrAdmin = authViewModel.auth?.id == owner || authViewModel.auth?.isAdmin == true;
     return Card(
       elevation: 4.0,
@@ -55,6 +61,7 @@ class StoreDetailWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Hiển thị tên cửa hàng và trạng thái phê duyệt
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -95,6 +102,7 @@ class StoreDetailWidget extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12.0),
+            // Hiển thị hình ảnh cửa hàng
             if (imageURLs.isNotEmpty)
               Column(
                 children: [
@@ -139,6 +147,7 @@ class StoreDetailWidget extends StatelessWidget {
                     }).toList(),
                   ),
                   const SizedBox(height: 8.0),
+                  // Chỉ báo cho carousel
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: imageURLs.asMap().entries.map((entry) {
@@ -166,20 +175,28 @@ class StoreDetailWidget extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 16.0),
+            // Hiển thị thông tin loại cửa hàng
             _buildInfoRow(context, 'Loại', type, Icons.category, Colors.blue),
+            // Hiển thị thông tin thành phố
             if (city != null)
               _buildInfoRow(context, 'Thành phố', city!, Icons.location_city, Colors.purple),
+            // Hiển thị thông tin địa chỉ
             if (address != null)
               _buildInfoRow(context, 'Địa chỉ', address!, Icons.place, Colors.red),
+            // Hiển thị thông tin mức giá
             if (priceRange != null)
               _buildInfoRow(context, 'Mức giá', priceRange!, Icons.attach_money, Colors.green),
+            // Hiển thị thực đơn
+            if (menu.isNotEmpty)
+              _buildMenuSection(context),
             const SizedBox(height: 16.0),
+            // Nút điều hướng và chỉnh sửa (nếu là chủ hoặc admin)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
                   child: SizedBox(
-                    height: 48, // Fixed height for consistency
+                    height: 48,
                     child: ElevatedButton.icon(
                       onPressed: coordinates != null ? onGetDirections : null,
                       icon: const Icon(Icons.directions, size: 20.0, color: Colors.white),
@@ -199,11 +216,12 @@ class StoreDetailWidget extends StatelessWidget {
                     ),
                   ),
                 ),
+                // Nút chỉnh sửa cửa hàng
                 if (isOwnerOrAdmin && id != null)
                   Padding(
                     padding: const EdgeInsets.only(left: 12.0),
                     child: SizedBox(
-                      height: 48, // Fixed height to match "Chỉ đường" button
+                      height: 48,
                       child: ElevatedButton.icon(
                         onPressed: () {
                           Navigator.push(
@@ -226,7 +244,8 @@ class StoreDetailWidget extends StatelessWidget {
                                       city: city,
                                       coordinates: coordinates,
                                     ),
-                                    priceRange: priceRange ?? 'Tầm trung',
+                                    priceRange: priceRange ?? 'Moderate',
+                                    menu: menu,
                                     images: imageURLs,
                                     owner: owner,
                                     reviews: null,
@@ -263,6 +282,7 @@ class StoreDetailWidget extends StatelessWidget {
     );
   }
 
+  // Xây dựng hàng thông tin (loại, thành phố, địa chỉ, mức giá)
   Widget _buildInfoRow(
       BuildContext context, String label, String value, IconData icon, Color iconColor) {
     return Padding(
@@ -299,6 +319,43 @@ class StoreDetailWidget extends StatelessWidget {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  // Xây dựng phần hiển thị thực đơn
+  Widget _buildMenuSection(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.restaurant_menu, size: 20.0, color: Colors.orange),
+              const SizedBox(width: 8.0),
+              Text(
+                'Thực đơn:',
+                style: TextStyle(
+                  fontSize: 14.0,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8.0),
+          ...menu.map((item) => Padding(
+                padding: const EdgeInsets.only(left: 28.0, bottom: 4.0),
+                child: Text(
+                  '${item.name}: ${item.price} VND',
+                  style: const TextStyle(
+                    fontSize: 16.0,
+                    color: Colors.black87,
+                  ),
+                ),
+              )),
         ],
       ),
     );

@@ -7,18 +7,19 @@ import 'package:latlong2/latlong.dart';
 import 'package:my_app/domain/entities/coordinates.dart';
 import 'package:my_app/domain/entities/store.dart';
 
+// Hàm tạo danh sách marker cho bản đồ
 List<Marker> buildMarkers({
-  required Coordinates currentLocation,
-  required bool isNavigating,
-  double? userHeading,
-  Store? navigatingStore,
-  required List<Store> filteredStores,
-  required Function(Store) onStoreTap,
-  required double mapRotation,
+  required Coordinates currentLocation, // Vị trí hiện tại của người dùng
+  required bool isNavigating, // Trạng thái đang điều hướng
+  double? userHeading, // Hướng di chuyển của người dùng (độ)
+  Store? navigatingStore, // Cửa hàng đang điều hướng tới
+  required List<Store> filteredStores, // Danh sách cửa hàng đã lọc
+  required Function(Store) onStoreTap, // Callback khi nhấn vào marker cửa hàng
+  required double mapRotation, // Góc xoay của bản đồ
 }) {
   List<Marker> markers = [];
 
-  // User location marker
+  // Thêm marker cho vị trí hiện tại của người dùng
   markers.add(
     Marker(
       point: currentLocation.toLatLng(),
@@ -26,7 +27,7 @@ List<Marker> buildMarkers({
       height: 80,
       child: isNavigating
           ? Transform.rotate(
-              angle: -mapRotation * (3.14159265359 / 180), // Counteract map rotation
+              angle: -mapRotation * (3.14159265359 / 180), // Chống xoay bản đồ
               child: SvgPicture.asset(
                 'assets/location-arrow.svg',
                 width: 40.0,
@@ -41,70 +42,12 @@ List<Marker> buildMarkers({
     ),
   );
 
-  // Store markers with custom icons based on type
+  // Thêm marker cho các cửa hàng
   for (var store in filteredStores) {
+    // Bỏ qua cửa hàng không có vị trí hoặc tọa độ
     if (store.location == null || store.location!.coordinates == null) {
       debugPrint('Store ${store.name} skipped due to missing location or coordinates');
       continue;
-    }
-
-    // Select icon and color based on type
-    IconData storeIcon;
-    Color iconColor;
-    switch (store.type) {
-      case 'Historical Site':
-        storeIcon = Icons.account_balance;
-        iconColor = Colors.brown;
-        break;
-      case 'Museum':
-        storeIcon = Icons.museum;
-        iconColor = Colors.indigo;
-        break;
-      case 'Natural Landmark':
-        storeIcon = Icons.terrain;
-        iconColor = Colors.green;
-        break;
-      case 'Entertainment Center':
-        storeIcon = Icons.emoji_emotions;
-        iconColor = Colors.purple;
-        break;
-      case 'Park':
-        storeIcon = Icons.park;
-        iconColor = Colors.lightGreen;
-        break;
-      case 'Cultural Site':
-        storeIcon = Icons.theater_comedy;
-        iconColor = Colors.deepOrange;
-        break;
-      case 'Religious Site':
-        storeIcon = Icons.account_balance_outlined;
-        iconColor = Colors.deepPurple;
-        break;
-      case 'Zoo':
-        storeIcon = Icons.pets;
-        iconColor = Colors.brown;
-        break;
-      case 'Aquarium':
-        storeIcon = Icons.waves;
-        iconColor = Colors.cyan;
-        break;
-      case 'Restaurant':
-        storeIcon = Icons.restaurant;
-        iconColor = Colors.blueGrey;
-        break;
-      case 'Scenic Spot':
-        storeIcon = Icons.visibility;
-        iconColor = Colors.teal;
-        break;
-      case 'Cinema':
-        storeIcon = Icons.local_movies;
-        iconColor = Colors.pink;
-        break;
-      case 'Other':
-      default:
-        storeIcon = Icons.place;
-        iconColor = Colors.grey;
-        break;
     }
 
     markers.add(
@@ -113,13 +56,13 @@ List<Marker> buildMarkers({
         width: 50,
         height: 50,
         child: GestureDetector(
-          onTap: () => onStoreTap(store),
+          onTap: () => onStoreTap(store), // Gọi callback khi nhấn vào marker
           child: Stack(
             alignment: Alignment.center,
             children: [
               Icon(
-                storeIcon,
-                color: iconColor,
+                Icons.restaurant,
+                color: Colors.green,
                 size: 50,
               ),
             ],
@@ -132,6 +75,7 @@ List<Marker> buildMarkers({
   return markers;
 }
 
+// Extension để chuyển đổi Coordinates thành LatLng
 extension LocationExtension on Coordinates {
   LatLng toLatLng() => LatLng(latitude, longitude);
 }
