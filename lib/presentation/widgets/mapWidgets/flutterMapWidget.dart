@@ -135,8 +135,8 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'my_app',
             ),
-            // Vùng bán kính xung quanh vị trí hiện tại
-            if (!widget.isNavigating)
+            // Vùng bán kính xung quanh vị trí hiện tại (chỉ hiển thị khi không tìm kiếm và không điều hướng)
+            if (!widget.isNavigating && widget.searchedLocation == null)
               CircleLayer(
                 circles: [
                   CircleMarker(
@@ -175,6 +175,7 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
                   filteredStores: validStores,
                   onStoreTap: widget.onStoreTap,
                   mapRotation: widget.isNavigating ? -heading : 0.0,
+                  searchedLocation: widget.searchedLocation, // Pass searchedLocation
                 ),
                 popupDisplayOptions: PopupDisplayOptions(
                   builder: (BuildContext context, Marker marker) {

@@ -12,6 +12,7 @@ import 'package:my_app/presentation/screens/store/storeViewModel.dart';
 import 'package:provider/provider.dart';
 import 'package:my_app/presentation/screens/auth/authViewModel.dart';
 import 'package:my_app/presentation/screens/store/editStoreScreen.dart';
+import 'package:intl/intl.dart';
 
 // Widget hiển thị thông tin chi tiết của một cửa hàng
 class StoreDetailWidget extends StatelessWidget {
@@ -324,6 +325,12 @@ class StoreDetailWidget extends StatelessWidget {
     );
   }
 
+  // Hàm định dạng giá với dấu chấm phân cách hàng nghìn
+  String _formatPrice(double price) {
+    final formatter = NumberFormat('#,##0', 'vi_VN');
+    return formatter.format(price);
+  }
+
   // Xây dựng phần hiển thị thực đơn
   Widget _buildMenuSection(BuildContext context) {
     return Padding(
@@ -349,7 +356,7 @@ class StoreDetailWidget extends StatelessWidget {
           ...menu.map((item) => Padding(
                 padding: const EdgeInsets.only(left: 28.0, bottom: 4.0),
                 child: Text(
-                  '${item.name}: ${item.price} VND',
+                  '${item.name}: ${_formatPrice(item.price)} VND',
                   style: const TextStyle(
                     fontSize: 16.0,
                     color: Colors.black87,

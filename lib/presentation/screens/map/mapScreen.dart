@@ -11,7 +11,7 @@ import 'package:my_app/presentation/widgets/mapWidgets/mapBottomWidget.dart';
 import 'package:my_app/presentation/widgets/mapWidgets/mapButtonsWidget.dart';
 import 'package:my_app/presentation/widgets/mapWidgets/mapStoreDetailWidget.dart';
 import 'package:my_app/core/constants/theme.dart';
-import 'package:my_app/presentation/widgets/flutterMapWidget.dart';
+import 'package:my_app/presentation/widgets/mapWidgets/flutterMapWidget.dart';
 import 'package:my_app/presentation/widgets/filterWidget.dart';
 import 'package:provider/provider.dart';
 

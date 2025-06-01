@@ -16,6 +16,7 @@ List<Marker> buildMarkers({
   required List<Store> filteredStores, // Danh sách cửa hàng đã lọc
   required Function(Store) onStoreTap, // Callback khi nhấn vào marker cửa hàng
   required double mapRotation, // Góc xoay của bản đồ
+  Coordinates? searchedLocation, // Vị trí tìm kiếm
 }) {
   List<Marker> markers = [];
 
@@ -41,6 +42,22 @@ List<Marker> buildMarkers({
             ),
     ),
   );
+
+  // Thêm marker cho vị trí tìm kiếm
+  if (searchedLocation != null) {
+    markers.add(
+      Marker(
+        point: searchedLocation.toLatLng(),
+        width: 50,
+        height: 50,
+        child: const Icon(
+          Icons.location_pin,
+          color: Colors.red,
+          size: 40.0,
+        ),
+      ),
+    );
+  }
 
   // Thêm marker cho các cửa hàng
   for (var store in filteredStores) {
