@@ -7,7 +7,7 @@ import 'package:location/location.dart' as loc;
 import 'package:my_app/domain/entities/coordinates.dart';
 import 'package:my_app/domain/entities/store.dart';
 import 'package:my_app/domain/usecases/getCurrentLocation.dart';
-import 'package:my_app/domain/usecases/getStores.dart';
+import 'package:my_app/domain/usecases/store/getStores.dart';
 import 'package:my_app/domain/usecases/getRoute.dart';
 
 // Lớp MapViewModel quản lý trạng thái và logic cho bản đồ

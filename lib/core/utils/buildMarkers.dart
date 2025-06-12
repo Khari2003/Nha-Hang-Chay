@@ -1,4 +1,4 @@
-// ignore_for_file: file_names
+// ignore_for_file: file_names, deprecated_member_use
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -59,28 +59,55 @@ List<Marker> buildMarkers({
     );
   }
 
-  // Thêm marker cho các cửa hàng
+  // Thêm marker cho các cửa hàng với tên hiển thị phía trên
   for (var store in filteredStores) {
     // Bỏ qua cửa hàng không có vị trí hoặc tọa độ
     if (store.location == null || store.location!.coordinates == null) {
-      debugPrint('Store ${store.name} skipped due to missing location or coordinates');
+      debugPrint('Cửa hàng ${store.name} bị bỏ qua do thiếu vị trí hoặc tọa độ');
       continue;
     }
 
     markers.add(
       Marker(
         point: store.location!.coordinates!.toLatLng(),
-        width: 50,
-        height: 50,
+        width: 80, // Tăng chiều rộng để chứa tên và icon
+        height: 80, // Tăng chiều cao để chứa tên và icon
         child: GestureDetector(
           onTap: () => onStoreTap(store), // Gọi callback khi nhấn vào marker
-          child: Stack(
-            alignment: Alignment.center,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // Hiển thị tên cửa hàng phía trên icon
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.85), // Nền trắng mờ để dễ đọc
+                  borderRadius: BorderRadius.circular(4.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 2.0,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  store.name,
+                  style: const TextStyle(
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis, // Cắt ngắn tên nếu quá dài
+                  maxLines: 1,
+                ),
+              ),
+              const SizedBox(height: 2.0), // Khoảng cách giữa tên và icon
               Icon(
                 Icons.restaurant,
                 color: Colors.green,
-                size: 50,
+                size: 40.0,
               ),
             ],
           ),

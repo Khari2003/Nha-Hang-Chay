@@ -16,4 +16,8 @@ class ApiEndpoints {
   static const String createStore = '$baseUrl/api/stores';
   static const String updateStore = '$baseUrl/api/stores'; // PUT: /api/stores/:id
   static const String deleteStore = '$baseUrl/api/stores'; // DELETE: /api/stores/:id
+
+  // Review endpoints
+  static const String leaveReview = '$baseUrl/api/stores/:id/reviews';  // POST
+  static const String getStoreReviews = '$baseUrl/api/stores/:id/reviews'; // GET
 }

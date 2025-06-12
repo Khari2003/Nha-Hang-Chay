@@ -24,9 +24,10 @@ class StoreModel extends Store with EquatableMixin {
     required super.menu,
     required super.images,
     super.owner,
-    super.reviews,
+    required super.reviews,
     super.isApproved = false,
     required super.createdAt,
+    super.rating = 0.0,
   });
 
   factory StoreModel.fromJson(Map<String, dynamic> json) {
@@ -38,10 +39,20 @@ class StoreModel extends Store with EquatableMixin {
       );
     }
 
+    // Handle reviews as a list of objects or null
+    final reviewsList = json['reviews'] != null && json['reviews'] is List<dynamic>
+        ? (json['reviews'] as List<dynamic>)
+            .asMap()
+            .entries
+            .where((entry) => entry.value is Map<String, dynamic> && entry.value['_id'] != null)
+            .map((entry) => (entry.value['_id'] as Object).toString())
+            .toList()
+        : <String>[];
+
     return StoreModel(
-      id: json['_id'] as String?,
-      name: json['name'] as String,
-      type: json['type'] as String,
+      id: json['_id']?.toString(),
+      name: json['name'] as String? ?? '',
+      type: json['type'] as String? ?? 'chay-hien-dai',
       description: json['description'] as String?,
       location: json['location'] != null
           ? Location(
@@ -55,16 +66,17 @@ class StoreModel extends Store with EquatableMixin {
       priceRange: json['priceRange'] as String? ?? 'Moderate',
       menu: (json['menu'] as List<dynamic>?)
               ?.map((item) => MenuItem(
-                    name: item['name'] as String,
-                    price: (item['price'] as num).toDouble(),
+                    name: item['name'] as String? ?? '',
+                    price: (item['price'] as num?)?.toDouble() ?? 0.0,
                   ))
               .toList() ??
           [],
       images: List<String>.from(json['images'] ?? []),
-      owner: json['owner'] as String?,
-      reviews: json['reviews'] != null ? List<String>.from(json['reviews']) : null,
+      owner: json['owner']?.toString(),
+      reviews: reviewsList, // List of review IDs
       isApproved: json['isApproved'] as bool? ?? false,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: DateTime.parse(json['createdAt'] as String? ?? DateTime.now().toIso8601String()),
+      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
@@ -100,9 +112,10 @@ class StoreModel extends Store with EquatableMixin {
           .toList(),
       'images': images,
       'owner': owner,
-      'reviews': reviews,
+      'reviews': reviews, // List of review IDs
       'isApproved': isApproved,
       'createdAt': createdAt.toIso8601String(),
+      'rating': rating,
     };
   }
 
@@ -120,11 +133,12 @@ class StoreModel extends Store with EquatableMixin {
         reviews,
         isApproved,
         createdAt,
+        rating,
       ];
 
   @override
   String toString() {
     return 'StoreModel(id: $id, name: $name, type: $type, description: $description, location: $location, '
-        'priceRange: $priceRange, menu: $menu, images: $images, owner: $owner, reviews: $reviews, isApproved: $isApproved, createdAt: $createdAt)';
+        'priceRange: $priceRange, menu: $menu, images: $images, owner: $owner, reviews: $reviews, isApproved: $isApproved, createdAt: $createdAt, rating: $rating)';
   }
 }

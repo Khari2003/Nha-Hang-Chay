@@ -1,4 +1,4 @@
-// ignore_for_file: depend_on_referenced_packages, deprecated_member_use
+// ignore_for_file: depend_on_referenced_packages, deprecated_member_use, library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -6,8 +6,8 @@ import 'package:my_app/data/models/storeModel.dart';
 import 'package:my_app/domain/entities/coordinates.dart';
 import 'package:my_app/domain/entities/location.dart';
 import 'package:my_app/domain/entities/store.dart';
-import 'package:my_app/domain/usecases/deleteStore.dart';
-import 'package:my_app/domain/usecases/updateStore.dart';
+import 'package:my_app/domain/usecases/store/deleteStore.dart';
+import 'package:my_app/domain/usecases/store/updateStore.dart';
 import 'package:my_app/presentation/screens/store/storeViewModel.dart';
 import 'package:provider/provider.dart';
 import 'package:my_app/presentation/screens/auth/authViewModel.dart';
@@ -15,19 +15,19 @@ import 'package:my_app/presentation/screens/store/editStoreScreen.dart';
 import 'package:intl/intl.dart';
 
 // Widget hiển thị thông tin chi tiết của một cửa hàng
-class StoreDetailWidget extends StatelessWidget {
-  final String name;
-  final String? city;
-  final String? address;
-  final Coordinates? coordinates;
-  final String? priceRange;
-  final List<MenuItem> menu;
-  final List<String> imageURLs;
-  final String type;
-  final bool isApproved;
-  final String? owner;
-  final String? id;
-  final VoidCallback onGetDirections;
+class StoreDetailWidget extends StatefulWidget {
+  final String name; // Tên cửa hàng
+  final String? city; // Thành phố của cửa hàng
+  final String? address; // Địa chỉ cụ thể
+  final Coordinates? coordinates; // Tọa độ cửa hàng
+  final String? priceRange; // Khoảng giá
+  final List<MenuItem> menu; // Danh sách thực đơn
+  final List<String> imageURLs; // Danh sách URL hình ảnh
+  final String type; // Loại cửa hàng (ví dụ: quán ăn, cà phê)
+  final bool isApproved; // Trạng thái phê duyệt
+  final String? owner; // ID chủ cửa hàng
+  final String? id; // ID cửa hàng
+  final VoidCallback onGetDirections; // Callback để lấy chỉ đường
 
   // Constructor với các thông tin cần thiết
   const StoreDetailWidget({
@@ -47,18 +47,66 @@ class StoreDetailWidget extends StatelessWidget {
   });
 
   @override
+  _StoreDetailWidgetState createState() => _StoreDetailWidgetState();
+}
+
+// Trạng thái của StoreDetailWidget
+class _StoreDetailWidgetState extends State<StoreDetailWidget> {
+  int _currentImageIndex = 0; // Biến theo dõi chỉ số ảnh hiện tại trong carousel
+
+  // Bản đồ ánh xạ các loại cửa hàng với nhãn hiển thị tiếng Việt
+  final Map<String, String> _storeTypeLabels = {
+    'chay-phat-giao': 'Chay Phật giáo',
+    'chay-a-au': 'Chay Á - Âu',
+    'chay-hien-dai': 'Chay hiện đại',
+    'com-chay-binh-dan': 'Cơm chay bình dân',
+    'buffet-chay': 'Buffet chay',
+    'chay-ton-giao-khac': 'Chay tôn giáo khác',
+  };
+
+  // Bản đồ ánh xạ các mức giá với nhãn hiển thị tiếng Việt
+  final Map<String, String> _priceRangeLabels = {
+    'Low': 'Thấp',
+    'Moderate': 'Trung bình',
+    'High': 'Cao',
+  };
+
+  // Khởi tạo trạng thái ban đầu
+  @override
+  void initState() {
+    super.initState();
+    // Có thể thêm logic khởi tạo bổ sung nếu cần
+  }
+
+  // Cập nhật khi widget nhận được props mới
+  @override
+  void didUpdateWidget(covariant StoreDetailWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reset chỉ số ảnh nếu danh sách ảnh thay đổi
+    if (oldWidget.imageURLs != widget.imageURLs) {
+      setState(() {
+        _currentImageIndex = 0;
+      });
+    }
+  }
+
+  // Xây dựng giao diện widget
+  @override
   Widget build(BuildContext context) {
-    final authViewModel = Provider.of<AuthViewModel>(context);
+    final authViewModel = Provider.of<AuthViewModel>(context); // Lấy AuthViewModel từ Provider
     // Kiểm tra xem người dùng có phải là chủ cửa hàng hoặc admin không
-    final isOwnerOrAdmin = authViewModel.auth?.id == owner || authViewModel.auth?.isAdmin == true;
+    print(authViewModel.auth?.id);
+    final isOwnerOrAdmin = authViewModel.auth != null && (authViewModel.auth?.id == widget.owner || authViewModel.auth?.isAdmin == true);
+    print(isOwnerOrAdmin);
+
     return Card(
-      elevation: 4.0,
+      elevation: 4.0, // Độ nổi của thẻ
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.0),
+        borderRadius: BorderRadius.circular(16.0), // Bo góc thẻ
       ),
-      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0), // Khoảng cách lề
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0), // Khoảng cách bên trong
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -68,56 +116,36 @@ class StoreDetailWidget extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    name,
+                    widget.name,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.black87,
                         ),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                  decoration: BoxDecoration(
-                    color: isApproved ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        isApproved ? Icons.check_circle : Icons.cancel,
-                        size: 16.0,
-                        color: isApproved ? Colors.green : Colors.red,
-                      ),
-                      const SizedBox(width: 4.0),
-                      Text(
-                        isApproved ? 'Đã phê duyệt' : 'Chưa phê duyệt',
-                        style: TextStyle(
-                          fontSize: 12.0,
-                          color: isApproved ? Colors.green : Colors.red,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 12.0),
-            // Hiển thị hình ảnh cửa hàng
-            if (imageURLs.isNotEmpty)
+            // Hiển thị hình ảnh cửa hàng trong carousel
+            if (widget.imageURLs.isNotEmpty)
               Column(
                 children: [
                   CarouselSlider(
                     options: CarouselOptions(
-                      height: 200.0,
-                      autoPlay: true,
-                      autoPlayInterval: const Duration(seconds: 3),
-                      enlargeCenterPage: true,
+                      height: 200.0, // Chiều cao carousel
+                      autoPlay: true, // Tự động chuyển ảnh
+                      autoPlayInterval: const Duration(seconds: 3), // Thời gian chuyển ảnh
+                      enlargeCenterPage: true, // Phóng to ảnh ở giữa
                       aspectRatio: 16 / 9,
-                      viewportFraction: 0.8,
-                      enableInfiniteScroll: true,
+                      viewportFraction: 0.8, // Tỷ lệ hiển thị của mỗi ảnh
+                      enableInfiniteScroll: true, // Cho phép cuộn vô hạn
+                      onPageChanged: (index, reason) {
+                        setState(() {
+                          _currentImageIndex = index; // Cập nhật chỉ số ảnh hiện tại
+                        });
+                      },
                     ),
-                    items: imageURLs.map((url) {
+                    items: widget.imageURLs.map((url) {
                       return Builder(
                         builder: (BuildContext context) {
                           return Container(
@@ -148,17 +176,19 @@ class StoreDetailWidget extends StatelessWidget {
                     }).toList(),
                   ),
                   const SizedBox(height: 8.0),
-                  // Chỉ báo cho carousel
+                  // Hiển thị chỉ báo cho carousel
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: imageURLs.asMap().entries.map((entry) {
+                    children: widget.imageURLs.asMap().entries.map((entry) {
                       return Container(
                         width: 8.0,
                         height: 8.0,
                         margin: const EdgeInsets.symmetric(horizontal: 4.0),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.grey.withOpacity(0.5),
+                          color: _currentImageIndex == entry.key
+                              ? Theme.of(context).colorScheme.primary // Màu cho ảnh hiện tại
+                              : Colors.grey.withOpacity(0.5), // Màu cho các ảnh khác
                         ),
                       );
                     }).toList(),
@@ -177,18 +207,18 @@ class StoreDetailWidget extends StatelessWidget {
               ),
             const SizedBox(height: 16.0),
             // Hiển thị thông tin loại cửa hàng
-            _buildInfoRow(context, 'Loại', type, Icons.category, Colors.blue),
+            _buildInfoRow(context, 'Loại', _storeTypeLabels[widget.type] ?? widget.type, Icons.category, Colors.blue),
             // Hiển thị thông tin thành phố
-            if (city != null)
-              _buildInfoRow(context, 'Thành phố', city!, Icons.location_city, Colors.purple),
+            if (widget.city != null)
+              _buildInfoRow(context, 'Thành phố', widget.city!, Icons.location_city, Colors.purple),
             // Hiển thị thông tin địa chỉ
-            if (address != null)
-              _buildInfoRow(context, 'Địa chỉ', address!, Icons.place, Colors.red),
+            if (widget.address != null)
+              _buildInfoRow(context, 'Địa chỉ', widget.address!, Icons.place, Colors.red),
             // Hiển thị thông tin mức giá
-            if (priceRange != null)
-              _buildInfoRow(context, 'Mức giá', priceRange!, Icons.attach_money, Colors.green),
+            if (widget.priceRange != null)
+              _buildInfoRow(context, 'Mức giá', _priceRangeLabels[widget.priceRange] ?? widget.priceRange!, Icons.attach_money, Colors.green),
             // Hiển thị thực đơn
-            if (menu.isNotEmpty)
+            if (widget.menu.isNotEmpty)
               _buildMenuSection(context),
             const SizedBox(height: 16.0),
             // Nút điều hướng và chỉnh sửa (nếu là chủ hoặc admin)
@@ -199,7 +229,7 @@ class StoreDetailWidget extends StatelessWidget {
                   child: SizedBox(
                     height: 48,
                     child: ElevatedButton.icon(
-                      onPressed: coordinates != null ? onGetDirections : null,
+                      onPressed: widget.coordinates != null ? widget.onGetDirections : null,
                       icon: const Icon(Icons.directions, size: 20.0, color: Colors.white),
                       label: const Text(
                         'Chỉ đường',
@@ -217,8 +247,8 @@ class StoreDetailWidget extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Nút chỉnh sửa cửa hàng
-                if (isOwnerOrAdmin && id != null)
+                // Nút chỉnh sửa cửa hàng (chỉ hiển thị nếu là chủ hoặc admin)
+                if (isOwnerOrAdmin && widget.id != null)
                   Padding(
                     padding: const EdgeInsets.only(left: 12.0),
                     child: SizedBox(
@@ -236,21 +266,21 @@ class StoreDetailWidget extends StatelessWidget {
                                 ],
                                 child: EditStoreScreen(
                                   store: StoreModel(
-                                    id: id,
-                                    name: name,
-                                    type: type,
+                                    id: widget.id,
+                                    name: widget.name,
+                                    type: widget.type,
                                     description: null,
                                     location: Location(
-                                      address: address,
-                                      city: city,
-                                      coordinates: coordinates,
+                                      address: widget.address,
+                                      city: widget.city,
+                                      coordinates: widget.coordinates,
                                     ),
-                                    priceRange: priceRange ?? 'Moderate',
-                                    menu: menu,
-                                    images: imageURLs,
-                                    owner: owner,
-                                    reviews: null,
-                                    isApproved: isApproved,
+                                    priceRange: widget.priceRange ?? 'Moderate',
+                                    menu: widget.menu,
+                                    images: widget.imageURLs,
+                                    owner: widget.owner,
+                                    reviews: [],
+                                    isApproved: widget.isApproved,
                                     createdAt: DateTime.now(),
                                   ),
                                 ),
@@ -283,7 +313,7 @@ class StoreDetailWidget extends StatelessWidget {
     );
   }
 
-  // Xây dựng hàng thông tin (loại, thành phố, địa chỉ, mức giá)
+  // Hàm xây dựng hàng thông tin (loại, thành phố, địa chỉ, mức giá)
   Widget _buildInfoRow(
       BuildContext context, String label, String value, IconData icon, Color iconColor) {
     return Padding(
@@ -331,7 +361,7 @@ class StoreDetailWidget extends StatelessWidget {
     return formatter.format(price);
   }
 
-  // Xây dựng phần hiển thị thực đơn
+  // Hàm xây dựng phần hiển thị thực đơn
   Widget _buildMenuSection(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -353,7 +383,7 @@ class StoreDetailWidget extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8.0),
-          ...menu.map((item) => Padding(
+          ...widget.menu.map((item) => Padding(
                 padding: const EdgeInsets.only(left: 28.0, bottom: 4.0),
                 child: Text(
                   '${item.name}: ${_formatPrice(item.price)} VND',
@@ -366,5 +396,12 @@ class StoreDetailWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // Giải phóng tài nguyên khi widget bị hủy
+  @override
+  void dispose() {
+    // Giải phóng tài nguyên nếu cần
+    super.dispose();
   }
 }

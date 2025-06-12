@@ -22,7 +22,7 @@ class StoreListWidget extends StatelessWidget {
         return ListTile(
           title: Text(store.name),
           subtitle: Text(store.location != null
-              ? 'Tỉnh/thành phố: ${store.location!.city ?? 'Không xác định'}, Đường: ${store.location!.address ?? 'Không xác định'}'
+              ? 'Địa chỉ: ${store.location!.city ?? 'Không xác định'}, Đường: ${store.location!.address ?? 'Không xác định'}'
               : 'Không có thông tin vị trí'),
           onTap: () => onSelectStore(store),
         );

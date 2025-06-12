@@ -55,6 +55,8 @@ class _AddStoreScreenState extends State<AddStoreScreen> {
       menu: storeViewModel.menuItems,
       images: [],
       createdAt: DateTime.now(),
+      reviews: [],
+      rating: 0.0
     );
 
     await storeViewModel.createStore(store);

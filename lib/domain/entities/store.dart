@@ -10,9 +10,10 @@ class Store {
   final List<MenuItem> menu;
   final List<String> images;
   final String? owner;
-  final List<String>? reviews;
+  final List<String> reviews;
   final bool isApproved;
   final DateTime createdAt;
+  final double rating;
 
   Store({
     this.id,
@@ -24,9 +25,10 @@ class Store {
     required this.menu,
     required this.images,
     this.owner,
-    this.reviews,
+    required this.reviews,
     this.isApproved = false,
     required this.createdAt,
+    this.rating = 0.0
   });
 }
 

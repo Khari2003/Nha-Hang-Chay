@@ -70,7 +70,7 @@ class SubmitButtonWidget extends StatelessWidget {
         menu: storeViewModel.menuItems,
         images: [],
         owner: authViewModel.auth?.id,
-        reviews: null,
+        reviews: [],
         isApproved: false,
         createdAt: DateTime.now(),
       );

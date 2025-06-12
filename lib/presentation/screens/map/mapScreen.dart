@@ -3,7 +3,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:my_app/domain/usecases/getCurrentLocation.dart';
-import 'package:my_app/domain/usecases/getStores.dart';
+import 'package:my_app/domain/usecases/store/getStores.dart';
 import 'package:my_app/domain/usecases/getRoute.dart';
 import 'package:my_app/presentation/screens/auth/authViewModel.dart';
 import 'package:my_app/presentation/screens/map/mapViewModel.dart';

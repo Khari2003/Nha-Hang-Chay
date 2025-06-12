@@ -7,7 +7,6 @@ import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:my_app/data/models/storeModel.dart';
 import 'package:my_app/domain/entities/coordinates.dart';
 import 'package:my_app/domain/entities/store.dart';
 import 'package:my_app/core/utils/buildMarkers.dart';
@@ -176,54 +175,6 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
                   onStoreTap: widget.onStoreTap,
                   mapRotation: widget.isNavigating ? -heading : 0.0,
                   searchedLocation: widget.searchedLocation, // Pass searchedLocation
-                ),
-                popupDisplayOptions: PopupDisplayOptions(
-                  builder: (BuildContext context, Marker marker) {
-                    // Tìm cửa hàng tương ứng với marker
-                    final store = validStores.firstWhere(
-                      (store) =>
-                          store.location!.coordinates!.toLatLng() == marker.point,
-                      orElse: () => StoreModel(
-                        id: '',
-                        name: 'Unknown',
-                        type: 'chay-hien-dai',
-                        priceRange: 'Moderate',
-                        menu: [],
-                        images: [],
-                        isApproved: false,
-                        createdAt: DateTime.now(),
-                      ),
-                    );
-                    // Hiển thị popup với thông tin cửa hàng
-                    return Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  store.name,
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                            Text('Loại: ${store.type}'),
-                            Text('Địa chỉ: ${store.location?.address ?? 'Không có địa chỉ'}'),
-                            Text('Thành phố: ${store.location?.city ?? 'Không xác định'}'),
-                            Text('Quốc gia: ${store.location?.country ?? 'Không xác định'}'),
-                            Text('Mức giá: ${store.priceRange}'),
-                            if (store.menu.isNotEmpty)
-                              Text('Thực đơn: ${store.menu.map((item) => "${item.name} (${item.price})").join(", ")}'),
-                            if (store.location?.coordinates != null)
-                              Text('Tọa độ: (${store.location!.coordinates!.latitude}, ${store.location!.coordinates!.longitude})'),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
                 ),
               ),
             ),

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:my_app/presentation/screens/map/mapViewModel.dart';
 
+// Widget hiển thị giao diện bộ lọc cho địa điểm
 class FilterWidget extends StatefulWidget {
   final MapViewModel viewModel;
 
@@ -12,15 +13,35 @@ class FilterWidget extends StatefulWidget {
   _FilterWidgetState createState() => _FilterWidgetState();
 }
 
+// Trạng thái của widget bộ lọc
 class _FilterWidgetState extends State<FilterWidget> {
+  // Bản đồ ánh xạ các loại cửa hàng với nhãn hiển thị tiếng Việt
+  final Map<String, String> _storeTypeLabels = {
+    'chay-phat-giao': 'Chay Phật giáo',
+    'chay-a-au': 'Chay Á - Âu',
+    'chay-hien-dai': 'Chay hiện đại',
+    'com-chay-binh-dan': 'Cơm chay bình dân',
+    'buffet-chay': 'Buffet chay',
+    'chay-ton-giao-khac': 'Chay tôn giáo khác',
+  };
+
+  // Bản đồ ánh xạ các mức giá với nhãn hiển thị tiếng Việt
+  final Map<String, String> _priceRangeLabels = {
+    'Low': 'Thấp',
+    'Moderate': 'Trung bình',
+    'High': 'Cao',
+  };
+
   @override
   Widget build(BuildContext context) {
+    // Tạo một sheet có thể kéo để hiển thị bộ lọc
     return DraggableScrollableSheet(
-      initialChildSize: 0.9, // hoặc 1.0 nếu muốn full
-    minChildSize: 0.5,
-    maxChildSize: 1.0,
-      snap: true, // Enable snapping for smoother UX
+      initialChildSize: 0.9, // Kích thước ban đầu chiếm 90% màn hình
+      minChildSize: 0.5, // Kích thước tối thiểu khi thu gọn
+      maxChildSize: 1.0, // Kích thước tối đa khi mở rộng
+      snap: true, // Bật tính năng snap để cải thiện trải nghiệm người dùng
       builder: (_, controller) {
+        // Giao diện chính của sheet với góc bo tròn và bóng đổ
         return ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20.0)),
           child: Container(
@@ -42,6 +63,7 @@ class _FilterWidgetState extends State<FilterWidget> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Tiêu đề và nút đóng
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -54,11 +76,12 @@ class _FilterWidgetState extends State<FilterWidget> {
                         ),
                         IconButton(
                           icon: Icon(Icons.close, color: Theme.of(context).primaryColor),
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () => Navigator.pop(context), // Đóng sheet khi nhấn
                         ),
                       ],
                     ),
                     const SizedBox(height: 24),
+                    // Phần lọc theo loại địa điểm
                     Text(
                       'Địa điểm',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -66,6 +89,7 @@ class _FilterWidgetState extends State<FilterWidget> {
                           ),
                     ),
                     const SizedBox(height: 12),
+                    // Hiển thị danh sách các chip lọc loại địa điểm
                     Wrap(
                       spacing: 8.0,
                       runSpacing: 8.0,
@@ -73,7 +97,7 @@ class _FilterWidgetState extends State<FilterWidget> {
                         final isSelected = widget.viewModel.selectedTypes.contains(type);
                         return FilterChip(
                           label: Text(
-                            type,
+                            _storeTypeLabels[type] ?? type, // Sử dụng nhãn tiếng Việt hoặc fallback
                             style: TextStyle(
                               color: isSelected
                                   ? Colors.white
@@ -92,13 +116,14 @@ class _FilterWidgetState extends State<FilterWidget> {
                           backgroundColor: Theme.of(context).cardColor,
                           onSelected: (selected) {
                             setState(() {
-                              widget.viewModel.toggleTypeFilter(type);
+                              widget.viewModel.toggleTypeFilter(type); // Cập nhật trạng thái lọc
                             });
                           },
                         );
                       }).toList(),
                     ),
                     const SizedBox(height: 24),
+                    // Phần lọc theo mức giá
                     Text(
                       'Mức giá',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -106,6 +131,7 @@ class _FilterWidgetState extends State<FilterWidget> {
                           ),
                     ),
                     const SizedBox(height: 12),
+                    // Hiển thị danh sách các chip lọc mức giá
                     Wrap(
                       spacing: 8.0,
                       runSpacing: 8.0,
@@ -114,7 +140,7 @@ class _FilterWidgetState extends State<FilterWidget> {
                             widget.viewModel.selectedPriceRanges.contains(priceRange);
                         return FilterChip(
                           label: Text(
-                            priceRange,
+                            _priceRangeLabels[priceRange] ?? priceRange, // Sử dụng nhãn tiếng Việt hoặc fallback
                             style: TextStyle(
                               color: isSelected
                                   ? Colors.white
@@ -133,19 +159,20 @@ class _FilterWidgetState extends State<FilterWidget> {
                           backgroundColor: Theme.of(context).cardColor,
                           onSelected: (selected) {
                             setState(() {
-                              widget.viewModel.togglePriceRangeFilter(priceRange);
+                              widget.viewModel.togglePriceRangeFilter(priceRange); // Cập nhật trạng thái lọc
                             });
                           },
                         );
                       }).toList(),
                     ),
                     const SizedBox(height: 24),
+                    // Nút xóa toàn bộ bộ lọc
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          widget.viewModel.clearFilters();
-                          setState(() {});
+                          widget.viewModel.clearFilters(); // Xóa tất cả bộ lọc
+                          setState(() {}); // Cập nhật giao diện
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.redAccent,
