@@ -177,7 +177,7 @@ class StoreViewModel extends ChangeNotifier {
       final result = await createStoreUseCase(updatedStore);
       result.fold(
         (failure) {
-          _errorMessage = failure.message;
+          _errorMessage = failure.message; // Gán lỗi vào _errorMessage
           debugPrint('Create store failure: ${failure.message}');
           notifyListeners();
         },

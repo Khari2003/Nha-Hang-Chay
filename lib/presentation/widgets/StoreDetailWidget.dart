@@ -95,9 +95,7 @@ class _StoreDetailWidgetState extends State<StoreDetailWidget> {
   Widget build(BuildContext context) {
     final authViewModel = Provider.of<AuthViewModel>(context); // Lấy AuthViewModel từ Provider
     // Kiểm tra xem người dùng có phải là chủ cửa hàng hoặc admin không
-    print(authViewModel.auth?.id);
     final isOwnerOrAdmin = authViewModel.auth != null && (authViewModel.auth?.id == widget.owner || authViewModel.auth?.isAdmin == true);
-    print(isOwnerOrAdmin);
 
     return Card(
       elevation: 4.0, // Độ nổi của thẻ

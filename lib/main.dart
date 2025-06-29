@@ -78,7 +78,10 @@ class MyApp extends StatelessWidget {
           '/verify-otp': (context) => const VerifyOtpScreen(),
           '/reset-password': (context) => const ResetPasswordScreen(),
           '/map': (context) => const MapScreen(),
-          '/create-store': (context) => const AddStoreScreen(),
+          '/create-store': (context) {
+            final authViewModel = ModalRoute.of(context)!.settings.arguments as AuthViewModel;
+            return AddStoreScreen(authViewModel: authViewModel);
+          },
           '/edit-store': (context) {
             final store = ModalRoute.of(context)!.settings.arguments as StoreModel;
             return EditStoreScreen(store: store);

@@ -76,15 +76,15 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
   // Bắt đầu chuyển động mượt cho vị trí người dùng
   void _startSmoothMovement() {
     movementTimer?.cancel();
-    const duration = Duration(milliseconds: 100); // Thời gian cập nhật
-    const double threshold = 0.0001; // Ngưỡng để dừng chuyển động
+    const duration = Duration(milliseconds: 50); // Tăng tần suất cập nhật
+    const double threshold = 0.00005; // Giảm ngưỡng để phản ứng nhanh hơn
     movementTimer = Timer.periodic(duration, (timer) {
       setState(() {
         animatedLocation = LatLng(
           animatedLocation.latitude +
-              (widget.currentLocation.latitude - animatedLocation.latitude) * 0.2,
+              (widget.currentLocation.latitude - animatedLocation.latitude) * 0.3,
           animatedLocation.longitude +
-              (widget.currentLocation.longitude - animatedLocation.longitude) * 0.2,
+              (widget.currentLocation.longitude - animatedLocation.longitude) * 0.3,
         );
       });
       // Dừng timer nếu vị trí gần với vị trí mục tiêu
@@ -101,100 +101,104 @@ class _FlutterMapWidgetState extends State<FlutterMapWidget> {
   // Xây dựng giao diện bản đồ
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<CompassEvent>(
-      stream: FlutterCompass.events, // Lắng nghe dữ liệu la bàn
-      builder: (context, snapshot) {
-        final heading = snapshot.data?.heading ?? 0; // Góc hướng hiện tại
+    return Stack(
+      children: [
+        StreamBuilder<CompassEvent>(
+          stream: widget.isNavigating ? FlutterCompass.events : null, // Chỉ lắng nghe la bàn khi điều hướng
+          builder: (context, snapshot) {
+            final heading = snapshot.data?.heading ?? 0; // Góc hướng hiện tại
 
-        // Xoay bản đồ khi đang điều hướng
-        if (widget.isNavigating) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            widget.mapController.rotate(-heading);
-          });
-        } else {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            widget.mapController.rotate(0);
-          });
-        }
+            // Xoay bản đồ khi đang điều hướng
+            if (widget.isNavigating) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                widget.mapController.rotate(-heading);
+              });
+            } else {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                widget.mapController.rotate(0);
+              });
+            }
 
-        // Lọc các cửa hàng hợp lệ (có vị trí và tọa độ)
-        final validStores = widget.filteredStores
-            .where((store) => store.location != null && store.location!.coordinates != null)
-            .toList();
+            // Lọc các cửa hàng hợp lệ (có vị trí và tọa độ)
+            final validStores = widget.filteredStores
+                .where((store) => store.location != null && store.location!.coordinates != null)
+                .toList();
 
-        return FlutterMap(
-          mapController: widget.mapController,
-          options: MapOptions(
-            initialCenter: animatedLocation, // Tâm bản đồ ban đầu
-            initialZoom: widget.isNavigating ? 20.0 : 14.0, // Mức zoom
-          ),
-          children: [
-            // Lớp bản đồ từ OpenStreetMap
-            TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'my_app',
-            ),
-            // Vùng bán kính xung quanh vị trí hiện tại (chỉ hiển thị khi không tìm kiếm và không điều hướng)
-            if (!widget.isNavigating && widget.searchedLocation == null)
-              CircleLayer(
-                circles: [
-                  CircleMarker(
-                    point: animatedLocation,
-                    radius: widget.radius,
-                    color: Colors.green.withOpacity(0.3),
-                    borderColor: Colors.green,
-                    borderStrokeWidth: 3,
-                    useRadiusInMeter: true,
-                  ),
-                ],
+            return FlutterMap(
+              mapController: widget.mapController,
+              options: MapOptions(
+                initialCenter: animatedLocation, // Tâm bản đồ theo vị trí hiện tại
+                initialZoom: widget.isNavigating ? 20.0 : 14.0, // Mức zoom
               ),
-            // Vùng bán kính của vùng tìm kiếm
-            if (widget.regionLocation != null && widget.regionRadius != null)
-              CircleLayer(
-                circles: [
-                  CircleMarker(
-                    point: widget.regionLocation!.toLatLng(),
-                    radius: widget.regionRadius!,
-                    color: Colors.blue.withOpacity(0.3),
-                    borderColor: Colors.blue,
-                    borderStrokeWidth: 3,
-                    useRadiusInMeter: true,
-                  ),
-                ],
-              ),
-            // Lớp marker với popup
-            PopupMarkerLayer(
-              options: PopupMarkerLayerOptions(
-                popupController: _popupController,
-                markers: buildMarkers(
-                  currentLocation: widget.currentLocation,
-                  isNavigating: widget.isNavigating,
-                  userHeading: widget.userHeading,
-                  navigatingStore: widget.navigatingStore,
-                  filteredStores: validStores,
-                  onStoreTap: widget.onStoreTap,
-                  mapRotation: widget.isNavigating ? -heading : 0.0,
-                  searchedLocation: widget.searchedLocation, // Pass searchedLocation
+              children: [
+                // Lớp bản đồ từ OpenStreetMap
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'my_app',
                 ),
-              ),
-            ),
-            // Lớp lộ trình
-            if (widget.routeCoordinates.isNotEmpty)
-              PolylineLayer(
-                polylines: widget.routeType == 'walking'
-                    ? generateDashedPolyline(
-                        widget.routeCoordinates.map((loc) => loc.toLatLng()).toList())
-                    : [
-                        Polyline(
-                          points: widget.routeCoordinates.map((loc) => loc.toLatLng()).toList(),
-                          strokeWidth: 5.0,
-                          color: Colors.blue.withOpacity(0.75),
-                        ),
-                      ],
-              ),
-          ],
-        );
-      },
+                // Vùng bán kính xung quanh vị trí hiện tại (chỉ hiển thị khi không tìm kiếm và không điều hướng)
+                if (!widget.isNavigating && widget.searchedLocation == null)
+                  CircleLayer(
+                    circles: [
+                      CircleMarker(
+                        point: animatedLocation,
+                        radius: widget.radius,
+                        color: Colors.green.withOpacity(0.3),
+                        borderColor: Colors.green,
+                        borderStrokeWidth: 3,
+                        useRadiusInMeter: true,
+                      ),
+                    ],
+                  ),
+                // Vùng bán kính của vùng tìm kiếm
+                if (widget.regionLocation != null && widget.regionRadius != null)
+                  CircleLayer(
+                    circles: [
+                      CircleMarker(
+                        point: widget.regionLocation!.toLatLng(),
+                        radius: widget.regionRadius!,
+                        color: Colors.blue.withOpacity(0.3),
+                        borderColor: Colors.blue,
+                        borderStrokeWidth: 3,
+                        useRadiusInMeter: true,
+                      ),
+                    ],
+                  ),
+                // Lớp marker với popup
+                PopupMarkerLayer(
+                  options: PopupMarkerLayerOptions(
+                    popupController: _popupController,
+                    markers: buildMarkers(
+                      currentLocation: widget.currentLocation,
+                      isNavigating: widget.isNavigating,
+                      userHeading: widget.userHeading,
+                      navigatingStore: widget.navigatingStore,
+                      filteredStores: validStores,
+                      onStoreTap: widget.onStoreTap,
+                      mapRotation: widget.isNavigating ? -heading : 0.0,
+                      searchedLocation: widget.searchedLocation,
+                    ),
+                  ),
+                ),
+                // Lớp lộ trình
+                if (widget.routeCoordinates.isNotEmpty)
+                  PolylineLayer(
+                    polylines: widget.routeType == 'walking'
+                        ? generateDashedPolyline(
+                            widget.routeCoordinates.map((loc) => loc.toLatLng()).toList())
+                        : [
+                            Polyline(
+                              points: widget.routeCoordinates.map((loc) => loc.toLatLng()).toList(),
+                              strokeWidth: 5.0,
+                              color: Colors.blue.withOpacity(0.75),
+                            ),
+                          ],
+                  ),
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 

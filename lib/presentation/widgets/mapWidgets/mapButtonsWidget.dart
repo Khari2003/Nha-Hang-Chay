@@ -44,101 +44,104 @@ class MapButtonsWidget extends StatelessWidget {
             ? startNavigationTop + 64.0
             : authButtonTop;
 
-    return areButtonsVisible
-        ? Stack(
-            children: [
-              // Nút tìm kiếm
-              Positioned(
-                top: 16.0,
-                left: 16.0,
-                child: GestureDetector(
-                  onTap: onButtonPressed,
-                  child: SearchButton(viewModel: viewModel),
-                ),
-              ),
-              // Nút chuyển đổi loại lộ trình
-              Positioned(
-                top: 80.0,
-                right: 16.0,
-                child: GestureDetector(
-                  onTap: onButtonPressed,
-                  child: ToggleRouteTypeButton(viewModel: viewModel),
-                ),
-              ),
-              // Nút tạo cửa hàng (nếu đã đăng nhập)
-              if (authViewModel.auth?.accessToken != null)
-                Positioned(
-                  top: 144.0,
-                  right: 16.0,
-                  child: GestureDetector(
-                    onTap: onButtonPressed,
-                    child: const CreateStoreButton(),
-                  ),
-                ),
-              // Nút đăng nhập/đăng xuất
-              Positioned(
-                top: authButtonTop,
-                left: 16.0,
-                child: GestureDetector(
-                  onTap: onButtonPressed,
-                  child: const AuthButton(),
-                ),
-              ),
-              // Nút bắt đầu điều hướng
-              if (viewModel.routeCoordinates.isNotEmpty && !viewModel.isNavigating)
-                Positioned(
-                  top: startNavigationTop,
-                  right: 16.0,
-                  child: GestureDetector(
-                    onTap: onButtonPressed,
-                    child: StartNavigationButton(viewModel: viewModel),
-                  ),
-                ),
-              // Nút kết thúc điều hướng
-              if (viewModel.isNavigating)
-                Positioned(
-                  top: endNavigationTop,
-                  right: 16.0,
-                  child: GestureDetector(
-                    onTap: onButtonPressed,
-                    child: EndNavigationButton(viewModel: viewModel),
-                  ),
-                ),
-              // Nút hủy tất cả
-              Positioned(
-                top: cancelAllTop,
-                right: 16.0,
-                child: GestureDetector(
-                  onTap: onButtonPressed,
-                  child: CancelAllButton(viewModel: viewModel),
-                ),
-              ),
-              // Nút mở bộ lọc
-              Positioned(
-                top: 16.0 + 64.0,
-                left: 16.0,
-                child: GestureDetector(
-                  onTap: onShowFilterSheet,
-                  child: FloatingActionButton(
-                    onPressed: onShowFilterSheet,
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Colors.white,
-                    elevation: 6,
-                    hoverElevation: 10,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(Icons.filter_list, size: 28),
-                  ),
-                ),
-              ),
-            ],
-          )
-        : // Nút hiển thị lại các nút
+    // Hiển thị các nút nếu có đường đi hoặc areButtonsVisible là true
+    if (viewModel.routeCoordinates.isNotEmpty || areButtonsVisible) {
+      return Stack(
+        children: [
+          // Nút tìm kiếm
           Positioned(
             top: 16.0,
+            left: 16.0,
+            child: GestureDetector(
+              onTap: onButtonPressed,
+              child: SearchButton(viewModel: viewModel),
+            ),
+          ),
+          // Nút chuyển đổi loại lộ trình
+          Positioned(
+            top: 80.0,
             right: 16.0,
-            child: ToggleButtonsButton(onPressed: onToggleButtons),
-          );
+            child: GestureDetector(
+              onTap: onButtonPressed,
+              child: ToggleRouteTypeButton(viewModel: viewModel),
+            ),
+          ),
+          // Nút tạo cửa hàng (nếu đã đăng nhập)
+          if (authViewModel.auth?.accessToken != null)
+            Positioned(
+              top: 144.0,
+              right: 16.0,
+              child: GestureDetector(
+                onTap: onButtonPressed,
+                child: CreateStoreButton(authViewModel: authViewModel),
+              ),
+            ),
+          // Nút đăng nhập/đăng xuất
+          Positioned(
+            top: authButtonTop,
+            left: 16.0,
+            child: GestureDetector(
+              onTap: onButtonPressed,
+              child: const AuthButton(),
+            ),
+          ),
+          // Nút bắt đầu điều hướng
+          if (viewModel.routeCoordinates.isNotEmpty && !viewModel.isNavigating)
+            Positioned(
+              top: startNavigationTop,
+              right: 16.0,
+              child: GestureDetector(
+                onTap: onButtonPressed,
+                child: StartNavigationButton(viewModel: viewModel),
+              ),
+            ),
+          // Nút kết thúc điều hướng
+          if (viewModel.isNavigating)
+            Positioned(
+              top: endNavigationTop,
+              right: 16.0,
+              child: GestureDetector(
+                onTap: onButtonPressed,
+                child: EndNavigationButton(viewModel: viewModel),
+              ),
+            ),
+          // Nút hủy tất cả
+          Positioned(
+            top: cancelAllTop,
+            right: 16.0,
+            child: GestureDetector(
+              onTap: onButtonPressed,
+              child: CancelAllButton(viewModel: viewModel),
+            ),
+          ),
+          // Nút mở bộ lọc
+          Positioned(
+            top: 16.0 + 64.0,
+            left: 16.0,
+            child: GestureDetector(
+              onTap: onShowFilterSheet,
+              child: FloatingActionButton(
+                onPressed: onShowFilterSheet,
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+                elevation: 6,
+                hoverElevation: 10,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(Icons.filter_list, size: 28),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else {
+      // Nút hiển thị lại các nút
+      return Positioned(
+        top: 16.0,
+        right: 16.0,
+        child: ToggleButtonsButton(onPressed: onToggleButtons),
+      );
+    }
   }
 }

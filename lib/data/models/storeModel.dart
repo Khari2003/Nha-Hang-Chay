@@ -23,7 +23,7 @@ class StoreModel extends Store with EquatableMixin {
     required super.priceRange,
     required super.menu,
     required super.images,
-    super.owner,
+    required super.owner,
     required super.reviews,
     super.isApproved = false,
     required super.createdAt,

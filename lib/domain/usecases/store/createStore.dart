@@ -13,6 +13,7 @@ class CreateStore {
 
   Future<Either<Failure, Store>> call(Store store) async {
     final result = await repository.createStore(store);
+    print(result);
     result.fold(
       (failure) => debugPrint('Failure: ${failure.message}'),
       (store) => debugPrint('Store created: ${store.name}'),
