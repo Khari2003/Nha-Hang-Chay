@@ -19,31 +19,31 @@ class StoreRepositoryImpl implements StoreRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Unexpected error: $e'));
+      return Left(ServerFailure('Lỗi không xác định: $e'));
     }
   }
 
   @override
-  Future<Either<Failure, Store>> createStore(Store store, {List<String> imagePaths = const []}) async {
+  Future<Either<Failure, Store>> createStore(Store store) async {
     try {
-      final createdStore = await dataSource.createStore(store as StoreModel, imagePaths: imagePaths);
+      final createdStore = await dataSource.createStore(store as StoreModel);
       return Right(createdStore);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Unexpected error: $e'));
+      return Left(ServerFailure('Lỗi không xác định: $e'));
     }
   }
 
   @override
-  Future<Either<Failure, Store>> updateStore(String id, Store store, {List<String> imagePaths = const []}) async {
+  Future<Either<Failure, Store>> updateStore(String id, Store store) async {
     try {
-      final updatedStore = await dataSource.updateStore(id, store as StoreModel, imagePaths: imagePaths);
+      final updatedStore = await dataSource.updateStore(id, store as StoreModel);
       return Right(updatedStore);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Unexpected error: $e'));
+      return Left(ServerFailure('Lỗi không xác định: $e'));
     }
   }
 
@@ -55,7 +55,7 @@ class StoreRepositoryImpl implements StoreRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Unexpected error: $e'));
+      return Left(ServerFailure('Lỗi không xác định: $e'));
     }
   }
 }

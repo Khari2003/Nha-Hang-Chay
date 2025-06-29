@@ -59,7 +59,6 @@ class _StoreFormWidgetState extends State<StoreFormWidget> {
     'High': 'Cao',
   };
 
-
   @override
   void initState() {
     super.initState();
@@ -80,6 +79,17 @@ class _StoreFormWidgetState extends State<StoreFormWidget> {
     _menuItemNameController.dispose();
     _menuItemPriceController.dispose();
     super.dispose();
+  }
+
+  // Reset form fields
+  void reset() {
+    _nameController.clear();
+    _descriptionController.clear();
+    _priceRangeController.clear();
+    _menuItemNameController.clear();
+    _menuItemPriceController.clear();
+    _selectedType = null;
+    setState(() {});
   }
 
   void _addMenuItem() {

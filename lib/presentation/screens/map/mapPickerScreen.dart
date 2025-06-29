@@ -22,12 +22,17 @@ class MapPickerScreen extends StatefulWidget {
 class _MapPickerScreenState extends State<MapPickerScreen> {
   final MapController _mapController = MapController();
   late LatLng _mapCenter;
-  LatLng? _selectedLocation; // Biến để lưu vị trí được chọn
+  LatLng? _selectedLocation;
 
   @override
   void initState() {
     super.initState();
     _mapCenter = LatLng(
+      widget.initialLocation.latitude,
+      widget.initialLocation.longitude,
+    );
+    // Đặt vị trí được chọn ban đầu từ initialLocation
+    _selectedLocation = LatLng(
       widget.initialLocation.latitude,
       widget.initialLocation.longitude,
     );
@@ -57,7 +62,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
           initialZoom: 13.0,
           onTap: (tapPosition, point) {
             setState(() {
-              _selectedLocation = point; // Cập nhật vị trí được chọn
+              _selectedLocation = point; // Cập nhật vị trí được chọn khi chạm
             });
             // Di chuyển bản đồ đến vị trí được chạm
             _mapController.move(point, _mapController.camera.zoom);
@@ -79,9 +84,11 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
               );
             },
           ),
-          if (_selectedLocation != null) // Chỉ hiển thị MarkerLayer khi có vị trí được chọn
-            MarkerLayer(
-              markers: [
+          MarkerLayer(
+            markers: [
+              if (_selectedLocation != null &&
+                  (_selectedLocation!.latitude != 0 ||
+                      _selectedLocation!.longitude != 0)) // Hiển thị marker cho vị trí được chọn
                 Marker(
                   point: _selectedLocation!,
                   width: 40,
@@ -92,8 +99,8 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                     size: 40,
                   ),
                 ),
-              ],
-            ),
+            ],
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(

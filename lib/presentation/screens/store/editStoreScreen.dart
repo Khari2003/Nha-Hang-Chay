@@ -59,7 +59,9 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
         location: storeViewModel.selectedLocation ?? widget.store.location,
         priceRange: formState.priceRange ?? widget.store.priceRange,
         menu: storeViewModel.menuItems,
-        images: widget.store.images,
+        images: storeViewModel.selectedImages.isNotEmpty
+            ? await storeViewModel.uploadImages(storeViewModel.selectedImages)
+            : widget.store.images,
         owner: widget.store.owner,
         reviews: widget.store.reviews,
         isApproved: widget.store.isApproved,
@@ -77,6 +79,9 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
           SnackBar(content: Text('Cập nhật cửa hàng thất bại: ${storeViewModel.errorMessage}')),
         );
       } else {
+        // Reset form after successful update
+        formState.reset();
+        storeViewModel.reset();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Cập nhật cửa hàng thành công')),
         );
@@ -98,6 +103,9 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
         SnackBar(content: Text('Xóa cửa hàng thất bại: ${storeViewModel.errorMessage}')),
       );
     } else {
+      // Reset form after successful deletion
+      storeFormKey.currentState?.reset();
+      storeViewModel.reset();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Xóa cửa hàng thành công')),
       );

@@ -24,71 +24,74 @@ class _AddStoreScreenState extends State<AddStoreScreen> {
 
   Future<void> _submitStore() async {
     if (_formKey.currentState == null || !_formKey.currentState!.validate()) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Vui lòng kiểm tra lại biểu mẫu')),
-        );
-        return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng kiểm tra lại biểu mẫu')),
+      );
+      return;
     }
 
     final storeViewModel = Provider.of<StoreViewModel>(context, listen: false);
     final formState = storeFormKey.currentState;
     if (formState == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Lỗi: Không thể lấy dữ liệu biểu mẫu')),
-        );
-        return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Lỗi: Không thể lấy dữ liệu biểu mẫu')),
+      );
+      return;
     }
 
     if (storeViewModel.selectedLocation?.coordinates == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Vui lòng chọn vị trí có tọa độ')),
-        );
-        return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng chọn vị trí có tọa độ')),
+      );
+      return;
     }
 
     setState(() => _isLoading = true);
 
     try {
-        // Tải hình ảnh lên Cloudinary
-        final imageUrls = await storeViewModel.uploadImages(storeViewModel.selectedImages);
+      // Tải hình ảnh lên Cloudinary
+      final imageUrls = await storeViewModel.uploadImages(storeViewModel.selectedImages);
 
-        final store = StoreModel(
-            name: formState.name!,
-            type: formState.type!,
-            description: formState.description,
-            location: storeViewModel.selectedLocation,
-            priceRange: formState.priceRange!,
-            menu: storeViewModel.menuItems,
-            images: imageUrls, // Sử dụng imageUrls từ Cloudinary
-            createdAt: DateTime.now(),
-            reviews: [],
-            owner: widget.authViewModel.auth?.id ?? 'unknown',
-            rating: 0.0
-        );
+      final store = StoreModel(
+        name: formState.name!,
+        type: formState.type!,
+        description: formState.description,
+        location: storeViewModel.selectedLocation,
+        priceRange: formState.priceRange!,
+        menu: storeViewModel.menuItems,
+        images: imageUrls,
+        createdAt: DateTime.now(),
+        reviews: [],
+        owner: widget.authViewModel.auth?.id ?? 'unknown',
+        rating: 0.0,
+      );
 
-        debugPrint('Store to be sent: ${store.toJson()}');
+      debugPrint('Store to be sent: ${store.toJson()}');
 
-        await storeViewModel.createStore(store);
+      await storeViewModel.createStore(store);
 
-        setState(() => _isLoading = false);
+      setState(() => _isLoading = false);
 
-        if (storeViewModel.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Tạo cửa hàng thất bại: ${storeViewModel.errorMessage}')),
-            );
-        } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Tạo cửa hàng thành công')),
-            );
-            Navigator.pushReplacementNamed(context, '/map');
-        }
-    } catch (e) {
-        setState(() => _isLoading = false);
+      if (storeViewModel.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Lỗi: $e')),
+          SnackBar(content: Text('Tạo cửa hàng thất bại: ${storeViewModel.errorMessage}')),
         );
+      } else {
+        // Reset form after successful creation
+        formState.reset();
+        storeViewModel.reset();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tạo cửa hàng thành công')),
+        );
+        Navigator.pushReplacementNamed(context, '/map');
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi: $e')),
+      );
     }
-}
+  }
 
   @override
   Widget build(BuildContext context) {

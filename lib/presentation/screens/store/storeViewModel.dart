@@ -45,6 +45,15 @@ class StoreViewModel extends ChangeNotifier {
   List<XFile> get selectedImages => _selectedImages;
   List<MenuItem> get menuItems => _menuItems;
 
+  // Reset all form-related data
+  void reset() {
+    _selectedImages = [];
+    _menuItems = [];
+    _selectedLocation = null;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
   // Set selected images
   void setSelectedImages(List<XFile> images) {
     _selectedImages = images;
@@ -177,14 +186,13 @@ class StoreViewModel extends ChangeNotifier {
       final result = await createStoreUseCase(updatedStore);
       result.fold(
         (failure) {
-          _errorMessage = failure.message; // Gán lỗi vào _errorMessage
+          _errorMessage = failure.message;
           debugPrint('Create store failure: ${failure.message}');
           notifyListeners();
         },
         (_) {
           _errorMessage = null;
-          _selectedImages.clear();
-          _menuItems.clear();
+          reset(); // Reset all form data on success
           notifyListeners();
         },
       );
@@ -225,8 +233,7 @@ class StoreViewModel extends ChangeNotifier {
         },
         (_) {
           _errorMessage = null;
-          _selectedImages.clear();
-          _menuItems.clear();
+          reset(); // Reset all form data on success
           notifyListeners();
         },
       );
@@ -258,6 +265,7 @@ class StoreViewModel extends ChangeNotifier {
         },
         (_) {
           _errorMessage = null;
+          reset(); // Reset all form data on success
           notifyListeners();
         },
       );
