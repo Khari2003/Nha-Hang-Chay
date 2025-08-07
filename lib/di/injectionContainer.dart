@@ -80,17 +80,19 @@ Future<void> init() async {
   sl.registerLazySingleton(() => SearchPlaces(sl())); // Tìm kiếm địa điểm
   sl.registerLazySingleton(() => UpdateStore(sl())); // Cập nhật cửa hàng
   sl.registerLazySingleton(() => VerifyOtp(sl())); // Xác minh OTP
-  sl.registerLazySingleton(() => GetStores(sl()));
+  sl.registerLazySingleton(() => GetStores(sl())); // Lấy danh sách cửa hàng
 
   // --- View Models ---
   // Đăng ký các view model để quản lý logic giao diện
-  sl.registerFactory(() => AuthViewModel(
-        loginUseCase: sl(),
-        registerUseCase: sl(),
-        forgotPasswordUseCase: sl(),
-        verifyOtpUseCase: sl(),
-        resetPasswordUseCase: sl(),
-      )); // View model cho xác thực
+  sl.registerSingleton<AuthViewModel>(
+    AuthViewModel(
+      loginUseCase: sl(),
+      registerUseCase: sl(),
+      forgotPasswordUseCase: sl(),
+      verifyOtpUseCase: sl(),
+      resetPasswordUseCase: sl(),
+    ),
+  ); // View model cho xác thực (singleton)
   sl.registerFactory(() => MapViewModel(
         getCurrentLocation: sl(),
         getStores: sl(),

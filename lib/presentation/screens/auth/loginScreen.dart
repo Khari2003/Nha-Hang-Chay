@@ -18,14 +18,15 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
+  bool _rememberMe = false;
 
   @override
   void initState() {
     super.initState();
-    // Pre-fill email if available
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     if (authViewModel.userEmail != null) {
       _emailController.text = authViewModel.userEmail!;
+      print('LoginScreen initState - Pre-filled email: ${authViewModel.userEmail}');
     }
   }
 
@@ -59,16 +60,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                   Navigator.pop(context);
                                 },
                               ),
-                              const Spacer(),
-                              Text(
-                                'ĐĂNG NHẬP',
-                                style: appTheme().textTheme.headlineSmall?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: appTheme().primaryColor,
-                                    ),
-                                textAlign: TextAlign.center,
+                              Expanded(
+                                child: Text(
+                                  'ĐĂNG NHẬP',
+                                  style: appTheme().textTheme.titleLarge?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: appTheme().primaryColor,
+                                      ),
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                              const Spacer(flex: 2),
+                              const SizedBox(width: 48),
                             ],
                           ),
                           const SizedBox(height: 16),
@@ -99,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           TextFormField(
                             controller: _passwordController,
                             decoration: InputDecoration(
-                              labelText: 'Password',
+                              labelText: 'Mật khẩu',
                               prefixIcon: const Icon(Icons.lock_outline),
                               suffixIcon: IconButton(
                                 icon: Icon(
@@ -128,6 +131,20 @@ class _LoginScreenState extends State<LoginScreen> {
                               return null;
                             },
                           ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: _rememberMe,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _rememberMe = value ?? false;
+                                  });
+                                },
+                              ),
+                              const Text('Lưu đăng nhập'),
+                            ],
+                          ),
                           if (Provider.of<AuthViewModel>(context).errorMessage != null)
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -146,15 +163,18 @@ class _LoginScreenState extends State<LoginScreen> {
                               : ElevatedButton(
                                   onPressed: () async {
                                     if (_formKey.currentState!.validate()) {
+                                      print('LoginScreen - Attempting login with email: ${_emailController.text}, rememberMe: $_rememberMe');
                                       await Provider.of<AuthViewModel>(context, listen: false).login(
                                         _emailController.text,
                                         _passwordController.text,
+                                        rememberMe: _rememberMe,
                                       );
-                                      if (Provider.of<AuthViewModel>(context, listen: false)
-                                              .auth
-                                              ?.accessToken !=
-                                          null) {
+                                      final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+                                      if (authViewModel.auth?.accessToken != null) {
+                                        print('LoginScreen - Login successful, navigating to /map');
                                         Navigator.pushReplacementNamed(context, '/map');
+                                      } else {
+                                        print('LoginScreen - Login failed, error: ${authViewModel.errorMessage}');
                                       }
                                     }
                                   },

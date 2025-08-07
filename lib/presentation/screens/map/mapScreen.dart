@@ -1,3 +1,4 @@
+// mapScreen.dart
 // ignore_for_file: file_names, library_private_types_in_public_api, depend_on_referenced_packages, use_build_context_synchronously, deprecated_member_use
 
 import 'dart:async';
@@ -15,7 +16,6 @@ import 'package:my_app/presentation/widgets/mapWidgets/flutterMapWidget.dart';
 import 'package:my_app/presentation/widgets/filterWidget.dart';
 import 'package:provider/provider.dart';
 
-// Widget chính hiển thị màn hình bản đồ
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
@@ -23,28 +23,24 @@ class MapScreen extends StatefulWidget {
   _MapScreenState createState() => _MapScreenState();
 }
 
-// Trạng thái của MapScreen
 class _MapScreenState extends State<MapScreen> {
-  // Biến kiểm soát hiển thị các nút
   bool areButtonsVisible = true;
-  // Timer để tự động ẩn nút sau 10 giây
   Timer? _hideButtonsTimer;
 
-  // Khởi tạo trạng thái
   @override
   void initState() {
     super.initState();
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+    print('MapScreen initState - isGuest: ${authViewModel.isGuest}, auth: ${authViewModel.auth}, userEmail: ${authViewModel.userEmail}, accessToken: ${authViewModel.auth?.accessToken}');
     _startHideButtonsTimer();
   }
 
-  // Giải phóng tài nguyên
   @override
   void dispose() {
     _hideButtonsTimer?.cancel();
     super.dispose();
   }
 
-  // Bắt đầu timer để ẩn các nút sau 10 giây
   void _startHideButtonsTimer() {
     _hideButtonsTimer?.cancel();
     _hideButtonsTimer = Timer(const Duration(seconds: 10), () {
@@ -56,7 +52,6 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-  // Chuyển đổi trạng thái hiển thị các nút
   void _toggleButtons() {
     setState(() {
       areButtonsVisible = !areButtonsVisible;
@@ -66,12 +61,10 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  // Xử lý khi nút được nhấn, khởi động lại timer ẩn nút
   void _onButtonPressed() {
     _startHideButtonsTimer();
   }
 
-  // Hiển thị bottom sheet chứa bộ lọc
   void _showFilterSheet(MapViewModel viewModel) {
     showModalBottomSheet(
       context: context,
@@ -82,15 +75,23 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  // Xây dựng giao diện chính
   @override
   Widget build(BuildContext context) {
     final authViewModel = Provider.of<AuthViewModel>(context);
 
+    if (!authViewModel.isGuest && authViewModel.auth == null) {
+      print('MapScreen - Người dùng chưa đăng nhập, chuyển hướng tới /welcome');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacementNamed(context, '/welcome');
+      });
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Theme(
       data: appTheme(),
       child: ChangeNotifierProvider(
-        // Khởi tạo MapViewModel với các usecase
         create: (context) => MapViewModel(
           getCurrentLocation: Provider.of<GetCurrentLocation>(context, listen: false),
           getStores: Provider.of<GetStores>(context, listen: false),
@@ -101,7 +102,6 @@ class _MapScreenState extends State<MapScreen> {
             return Scaffold(
               body: SafeArea(
                 child: GestureDetector(
-                  // Khi chạm vào màn hình, bỏ chọn cửa hàng
                   onTap: () {
                     viewModel.selectStore(null);
                     _onButtonPressed();
@@ -114,7 +114,6 @@ class _MapScreenState extends State<MapScreen> {
                         )
                       : Stack(
                           children: [
-                            // Widget hiển thị bản đồ
                             FlutterMapWidget(
                               mapController: viewModel.mapController,
                               currentLocation: viewModel.currentLocation!,
@@ -131,10 +130,8 @@ class _MapScreenState extends State<MapScreen> {
                               },
                               searchedLocation: viewModel.searchedLocation,
                               regionLocation: viewModel.regionLocation,
-                              regionRadius:
-                                  viewModel.showRegionRadiusSlider ? viewModel.radius : null,
+                              regionRadius: viewModel.showRegionRadiusSlider ? viewModel.radius : null,
                             ),
-                            // Widget hiển thị các nút
                             MapButtonsWidget(
                               areButtonsVisible: areButtonsVisible,
                               authViewModel: authViewModel,
@@ -143,12 +140,10 @@ class _MapScreenState extends State<MapScreen> {
                               onToggleButtons: _toggleButtons,
                               onShowFilterSheet: () => _showFilterSheet(viewModel),
                             ),
-                            // Widget hiển thị thanh trượt bán kính và danh sách cửa hàng
                             MapBottomWidget(
                               viewModel: viewModel,
                               onButtonPressed: _onButtonPressed,
                             ),
-                            // Widget hiển thị chi tiết cửa hàng
                             if (viewModel.selectedStore != null)
                               MapStoreDetailWidget(
                                 viewModel: viewModel,
@@ -156,7 +151,7 @@ class _MapScreenState extends State<MapScreen> {
                               ),
                           ],
                         ),
-                ),
+                )
               ),
             );
           },

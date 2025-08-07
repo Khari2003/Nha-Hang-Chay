@@ -1,4 +1,3 @@
-// main.dart
 // ignore_for_file: depend_on_referenced_packages
 
 import 'package:flutter/material.dart';
@@ -26,10 +25,9 @@ import 'presentation/screens/store/storeViewModel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await di.init();
-  // Load user data before running the app
+  await di.init(); // Initialize dependency injection
   final authViewModel = di.sl<AuthViewModel>();
-  await authViewModel.loadUserData();
+  await authViewModel.loadUserData(); // Load user data once
   runApp(const MyApp());
 }
 
@@ -40,8 +38,19 @@ class MyApp extends StatelessWidget {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('accessToken');
-      return token != null ? '/map' : '/welcome';
+      final rememberMe = prefs.getBool('rememberMe') ?? false;
+      print('Kiểm tra tuyến đường ban đầu - Token: $token, RememberMe: $rememberMe');
+      final authViewModel = di.sl<AuthViewModel>();
+      await authViewModel.verifyToken(); // Verify token
+      print('Sau khi verifyToken - auth: ${authViewModel.auth}, userEmail: ${authViewModel.userEmail}');
+      if (token != null && rememberMe && authViewModel.auth != null) {
+        print('Token hợp lệ, điều hướng tới /map');
+        return '/map';
+      }
+      print('Không có token hoặc token không hợp lệ, điều hướng tới /welcome');
+      return '/welcome';
     } catch (e) {
+      print('Lỗi tuyến đường ban đầu: $e');
       return '/welcome';
     }
   }
@@ -50,7 +59,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => di.sl<AuthViewModel>()),
+        // Use the singleton instance of AuthViewModel
+        ChangeNotifierProvider.value(value: di.sl<AuthViewModel>()),
         Provider<GetCurrentLocation>(create: (_) => di.sl<GetCurrentLocation>()),
         Provider<GetStores>(create: (_) => di.sl<GetStores>()),
         Provider<GetRoute>(create: (_) => di.sl<GetRoute>()),
@@ -68,6 +78,7 @@ class MyApp extends StatelessWidget {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Scaffold(body: Center(child: CircularProgressIndicator()));
                   }
+                  print('Initial route: ${snapshot.data}');
                   return snapshot.data == '/map' ? const MapScreen() : const WelcomeScreen();
                 },
               ),
