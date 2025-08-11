@@ -26,7 +26,6 @@ class _LoginScreenState extends State<LoginScreen> {
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     if (authViewModel.userEmail != null) {
       _emailController.text = authViewModel.userEmail!;
-      print('LoginScreen initState - Pre-filled email: ${authViewModel.userEmail}');
     }
   }
 
@@ -163,7 +162,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               : ElevatedButton(
                                   onPressed: () async {
                                     if (_formKey.currentState!.validate()) {
-                                      print('LoginScreen - Attempting login with email: ${_emailController.text}, rememberMe: $_rememberMe');
                                       await Provider.of<AuthViewModel>(context, listen: false).login(
                                         _emailController.text,
                                         _passwordController.text,
@@ -171,10 +169,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                       );
                                       final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
                                       if (authViewModel.auth?.accessToken != null) {
-                                        print('LoginScreen - Login successful, navigating to /map');
                                         Navigator.pushReplacementNamed(context, '/map');
                                       } else {
-                                        print('LoginScreen - Login failed, error: ${authViewModel.errorMessage}');
                                       }
                                     }
                                   },

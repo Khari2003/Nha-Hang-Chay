@@ -50,13 +50,6 @@ class AuthViewModel extends ChangeNotifier {
     _userName = prefs.getString('userName');
     _isGuest = prefs.getBool('isGuest') ?? false;
     _rememberMe = prefs.getBool('rememberMe') ?? false;
-    print('Loaded from SharedPreferences:');
-    print('userEmail: $_userEmail');
-    print('userName: $_userName');
-    print('isGuest: $_isGuest');
-    print('rememberMe: $_rememberMe');
-    print('accessToken: ${prefs.getString('accessToken')}');
-    print('refreshToken: ${prefs.getString('refreshToken')}');
     if (_rememberMe && _userEmail != null && prefs.getString('accessToken') != null) {
       await verifyToken();
     }
@@ -67,9 +60,7 @@ class AuthViewModel extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final accessToken = prefs.getString('accessToken');
-      print('Verifying token: $accessToken');
       if (accessToken == null) {
-        print('No access token found');
         await clearUserData();
         return;
       }
@@ -83,7 +74,6 @@ class AuthViewModel extends ChangeNotifier {
         body: jsonEncode({'accessToken': accessToken}),
       );
 
-      print('VerifyToken response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         if (json['valid'] == true) {
@@ -98,20 +88,15 @@ class AuthViewModel extends ChangeNotifier {
           _userEmail = json['user']['email'];
           _userName = json['user']['name'];
           _isGuest = false;
-          print('Token valid, user: $_userEmail');
         } else {
-          print('Token invalid, trying to refresh');
           await refreshToken();
         }
       } else if (response.statusCode == 401) {
-        print('Access token expired, trying to refresh');
         await refreshToken();
       } else {
-        print('VerifyToken failed: ${response.statusCode}');
         await clearUserData();
       }
     } catch (e) {
-      print('VerifyToken error: $e');
       await clearUserData();
     }
     notifyListeners();
@@ -122,9 +107,7 @@ class AuthViewModel extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final refreshToken = prefs.getString('refreshToken');
-      print('Refreshing token with refreshToken: $refreshToken');
       if (refreshToken == null) {
-        print('No refresh token found');
         await clearUserData();
         return;
       }
@@ -137,7 +120,6 @@ class AuthViewModel extends ChangeNotifier {
         body: jsonEncode({'refreshToken': refreshToken}),
       );
 
-      print('RefreshToken response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         final newAccessToken = json['accessToken'];
@@ -155,13 +137,10 @@ class AuthViewModel extends ChangeNotifier {
         _userEmail = _auth!.email;
         _userName = _auth!.name;
         _isGuest = false;
-        print('Token refreshed successfully, user: $_userEmail, newAccessToken: $newAccessToken');
       } else {
-        print('Refresh token failed: ${response.statusCode}');
         await clearUserData();
       }
     } catch (e) {
-      print('RefreshToken error: $e');
       await clearUserData();
     }
     notifyListeners();
@@ -186,12 +165,6 @@ class AuthViewModel extends ChangeNotifier {
         await prefs.setBool('rememberMe', rememberMe);
         _userEmail = email;
         _userName = _auth!.name;
-        print('Login successful - accessToken: ${prefs.getString('accessToken')}');
-        print('Login successful - refreshToken: ${prefs.getString('refreshToken')}');
-        print('Login successful - userEmail: ${prefs.getString('userEmail')}');
-        print('Login successful - userName: ${prefs.getString('userName')}');
-        print('Login successful - isGuest: ${prefs.getBool('isGuest')}');
-        print('Login successful - rememberMe: ${prefs.getBool('rememberMe')}');
       }
     } catch (e) {
       _errorMessage = e is ServerFailure ? e.message : 'Lỗi xảy ra khi đăng nhập';
@@ -286,15 +259,12 @@ class AuthViewModel extends ChangeNotifier {
           },
         );
 
-        print('Logout response: ${response.statusCode}');
         if (response.statusCode != 200 && response.statusCode != 204) {
           throw ServerFailure('Đăng xuất thất bại: ${response.reasonPhrase}');
         }
       }
 
       await clearUserData();
-      print('Sau khi đăng xuất - accessToken: ${prefs.getString('accessToken')}');
-      print('Sau khi đăng xuất - rememberMe: ${prefs.getBool('rememberMe')}');
     } catch (e) {
       _errorMessage = e is ServerFailure ? e.message : 'Lỗi xảy ra khi đăng xuất';
     } finally {

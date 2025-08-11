@@ -30,8 +30,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
-    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-    print('MapScreen initState - isGuest: ${authViewModel.isGuest}, auth: ${authViewModel.auth}, userEmail: ${authViewModel.userEmail}, accessToken: ${authViewModel.auth?.accessToken}');
+    // final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     _startHideButtonsTimer();
   }
 
@@ -80,7 +79,6 @@ class _MapScreenState extends State<MapScreen> {
     final authViewModel = Provider.of<AuthViewModel>(context);
 
     if (!authViewModel.isGuest && authViewModel.auth == null) {
-      print('MapScreen - Người dùng chưa đăng nhập, chuyển hướng tới /welcome');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacementNamed(context, '/welcome');
       });

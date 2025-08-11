@@ -360,7 +360,6 @@ class MapViewModel extends ChangeNotifier {
       _showRegionRadiusSlider = true;
       if (radius != null) {
         _radius = radius;
-        print('Set region radius: $radius');
       }
       updateFilteredStores();
     } else {

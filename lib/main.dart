@@ -39,18 +39,13 @@ class MyApp extends StatelessWidget {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('accessToken');
       final rememberMe = prefs.getBool('rememberMe') ?? false;
-      print('Kiểm tra tuyến đường ban đầu - Token: $token, RememberMe: $rememberMe');
       final authViewModel = di.sl<AuthViewModel>();
       await authViewModel.verifyToken(); // Verify token
-      print('Sau khi verifyToken - auth: ${authViewModel.auth}, userEmail: ${authViewModel.userEmail}');
       if (token != null && rememberMe && authViewModel.auth != null) {
-        print('Token hợp lệ, điều hướng tới /map');
         return '/map';
       }
-      print('Không có token hoặc token không hợp lệ, điều hướng tới /welcome');
       return '/welcome';
     } catch (e) {
-      print('Lỗi tuyến đường ban đầu: $e');
       return '/welcome';
     }
   }
@@ -78,7 +73,6 @@ class MyApp extends StatelessWidget {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Scaffold(body: Center(child: CircularProgressIndicator()));
                   }
-                  print('Initial route: ${snapshot.data}');
                   return snapshot.data == '/map' ? const MapScreen() : const WelcomeScreen();
                 },
               ),

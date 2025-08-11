@@ -3,8 +3,7 @@
 // Lớp chứa các endpoint API để giao tiếp với backend
 class ApiEndpoints {
   // URL gốc của backend
-  static const String baseUrl = 'http://localhost:3000';
-  // static const String baseUrl = 'https://localhost:3000/';
+  static const String baseUrl = 'https://server-morning-forest-197.fly.dev';
 
   // Auth endpoints
   static const String login = '$baseUrl/api/auth/login'; // POST: Đăng nhập người dùng
