@@ -6,9 +6,10 @@ import 'package:my_app/presentation/screens/store/storeViewModel.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 
+// Widget chọn hình ảnh
 class ImagePickerWidget extends StatelessWidget {
-  final List<String>? initialImages;
-  final ValueChanged<List<XFile>>? onImagesChanged;
+  final List<String>? initialImages; // Danh sách hình ảnh ban đầu (URL)
+  final ValueChanged<List<XFile>>? onImagesChanged; // Callback khi danh sách hình ảnh thay đổi
 
   const ImagePickerWidget({
     super.key,
@@ -18,16 +19,16 @@ class ImagePickerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final storeViewModel = Provider.of<StoreViewModel>(context);
+    final storeViewModel = Provider.of<StoreViewModel>(context); // Lấy StoreViewModel từ Provider
 
-    // Initialize with empty list if no initial images
+    // Khởi tạo với danh sách rỗng nếu không có hình ảnh ban đầu
     if (initialImages != null && storeViewModel.selectedImages.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        storeViewModel.setSelectedImages([]); // Ensure fresh state
+        storeViewModel.setSelectedImages([]); // Đảm bảo trạng thái mới
       });
     }
 
-    // Combine initial images and selected images for display
+    // Kết hợp hình ảnh ban đầu và hình ảnh đã chọn để hiển thị
     final displayImages = storeViewModel.selectedImages.isNotEmpty
         ? storeViewModel.selectedImages
         : (initialImages != null && initialImages!.isNotEmpty)
@@ -37,13 +38,14 @@ class ImagePickerWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Hàng nút chọn từ thư viện và chụp ảnh
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
               child: SizedBox(
-                height: 60, // Fixed height for consistency
-                width: double.infinity, // Ensure full width within Expanded
+                height: 60, // Chiều cao cố định
+                width: double.infinity, // Độ rộng đầy đủ
                 child: ElevatedButton.icon(
                   onPressed: () async {
                     await storeViewModel.pickImages();
@@ -73,8 +75,8 @@ class ImagePickerWidget extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: SizedBox(
-                height: 60, // Fixed height for consistency
-                width: double.infinity, // Ensure full width within Expanded
+                height: 60, // Chiều cao cố định
+                width: double.infinity, // Độ rộng đầy đủ
                 child: ElevatedButton.icon(
                   onPressed: () async {
                     await storeViewModel.pickImageFromCamera();
@@ -104,6 +106,7 @@ class ImagePickerWidget extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
+        // Hiển thị lưới hình ảnh nếu có
         if (displayImages.isNotEmpty)
           GridView.builder(
             shrinkWrap: true,

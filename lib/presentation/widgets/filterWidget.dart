@@ -5,7 +5,7 @@ import 'package:my_app/presentation/screens/map/mapViewModel.dart';
 
 // Widget hiển thị giao diện bộ lọc cho địa điểm
 class FilterWidget extends StatefulWidget {
-  final MapViewModel viewModel;
+  final MapViewModel viewModel; // ViewModel quản lý dữ liệu bản đồ
 
   const FilterWidget({super.key, required this.viewModel});
 

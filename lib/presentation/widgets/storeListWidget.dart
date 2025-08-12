@@ -3,9 +3,10 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/store.dart';
 
+// Widget hiển thị danh sách cửa hàng
 class StoreListWidget extends StatelessWidget {
-  final List<Store> stores;
-  final Function(Store) onSelectStore;
+  final List<Store> stores; // Danh sách cửa hàng
+  final Function(Store) onSelectStore; // Callback khi chọn cửa hàng
 
   const StoreListWidget({
     required this.stores,

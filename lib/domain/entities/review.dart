@@ -1,16 +1,15 @@
 import 'package:equatable/equatable.dart';
 
-// Entity đại diện cho một đánh giá (review) của người dùng về cửa hàng
 class Review extends Equatable {
-  final String id; // ID duy nhất của đánh giá
-  final String userId; // ID của người dùng gửi đánh giá
-  final String userName; // Tên người dùng
-  final String storeId; // ID của cửa hàng được đánh giá
-  final String? comment; // Bình luận (tùy chọn)
-  final int rating; // Điểm số từ 1 đến 5
-  final List<String> images; // Danh sách URL hoặc đường dẫn hình ảnh
-  final String? reply; // Phản hồi từ chủ cửa hàng (tùy chọn)
-  final DateTime date; // Ngày tạo đánh giá
+  final String id;
+  final String userId;
+  final String userName;
+  final String storeId;
+  final String? comment;
+  final int rating;
+  final List<String> images;
+  final String? reply;
+  final DateTime date;
 
   const Review({
     required this.id,
@@ -23,6 +22,20 @@ class Review extends Equatable {
     this.reply,
     required this.date,
   });
+
+  factory Review.fromJson(Map<String, dynamic> json) {
+    return Review(
+      id: json['_id'],
+      userId: json['user'],
+      userName: json['userName'] ?? '',
+      storeId: json['store'],
+      comment: json['comment'],
+      rating: json['rating'],
+      images: List<String>.from(json['images'] ?? []),
+      reply: json['reply'],
+      date: DateTime.parse(json['date']),
+    );
+  }
 
   @override
   List<Object?> get props => [id, userId, userName, storeId, comment, rating, images, reply, date];

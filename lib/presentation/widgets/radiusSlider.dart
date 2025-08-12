@@ -2,13 +2,14 @@
 
 import 'package:flutter/material.dart';
 
+// Widget slider điều chỉnh bán kính
 class RadiusSlider extends StatelessWidget {
-  final double radius;
-  final ValueChanged<double> onRadiusChanged;
+  final double radius; // Giá trị bán kính hiện tại
+  final ValueChanged<double> onRadiusChanged; // Callback khi bán kính thay đổi
 
-  final String locationName;
-  final double lat;
-  final double lon;
+  final String locationName; // Tên vị trí
+  final double lat; // Vĩ độ
+  final double lon; // Kinh độ
 
   const RadiusSlider({
     required this.radius,
@@ -27,6 +28,7 @@ class RadiusSlider extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 10),
+          // Slider điều chỉnh bán kính từ 100m đến 5000m
           Slider(
             value: radius,
             min: 100,

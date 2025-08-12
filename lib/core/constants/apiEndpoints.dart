@@ -15,6 +15,9 @@ class ApiEndpoints {
   static const String verifyToken = '$baseUrl/api/auth/verifyToken'; // POST: Xác minh accessToken
   static const String refreshToken = '$baseUrl/api/auth/refresh-token'; // POST: Làm mới accessToken bằng refreshToken
 
+  // User endpoints
+  static const String userById = '$baseUrl/api/users/'; // GET, PUT: Lấy/cập nhật thông tin user
+
   // Store endpoints
   static const String stores = '$baseUrl/api/stores'; // GET: Lấy danh sách cửa hàng
   static const String searchStores = '$baseUrl/api/stores/search'; // GET: Tìm kiếm cửa hàng

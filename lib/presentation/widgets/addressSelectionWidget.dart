@@ -8,9 +8,10 @@ import 'package:my_app/presentation/screens/store/storeViewModel.dart';
 import 'package:my_app/presentation/widgets/addressSearchWidget.dart';
 import 'package:provider/provider.dart';
 
+// Widget cho phép chọn địa chỉ
 class AddressSelectionWidget extends StatefulWidget {
-  final Location? initialLocation;
-  final ValueChanged<Location>? onLocationChanged;
+  final Location? initialLocation; // Vị trí ban đầu
+  final ValueChanged<Location>? onLocationChanged; // Callback khi vị trí thay đổi
 
   const AddressSelectionWidget({
     super.key,
@@ -22,12 +23,14 @@ class AddressSelectionWidget extends StatefulWidget {
   _AddressSelectionWidgetState createState() => _AddressSelectionWidgetState();
 }
 
+// Trạng thái của widget chọn địa chỉ
 class _AddressSelectionWidgetState extends State<AddressSelectionWidget> {
-  bool _isAddressSearch = true;
+  bool _isAddressSearch = true; // Biến kiểm soát chế độ tìm kiếm địa chỉ (true) hoặc chọn trên bản đồ (false)
 
   @override
   void initState() {
     super.initState();
+    // Nếu có vị trí ban đầu, đặt vị trí vào ViewModel
     if (widget.initialLocation != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Provider.of<StoreViewModel>(context, listen: false).setLocation(widget.initialLocation!);
@@ -37,11 +40,12 @@ class _AddressSelectionWidgetState extends State<AddressSelectionWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final storeViewModel = Provider.of<StoreViewModel>(context);
+    final storeViewModel = Provider.of<StoreViewModel>(context); // Lấy StoreViewModel từ Provider
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Hàng chọn chế độ: Nhập địa chỉ hoặc Chọn trên bản đồ
         Row(
           children: [
             Expanded(
@@ -71,6 +75,7 @@ class _AddressSelectionWidgetState extends State<AddressSelectionWidget> {
           ],
         ),
         const SizedBox(height: 8),
+        // Nếu chế độ tìm kiếm địa chỉ, hiển thị widget tìm kiếm địa chỉ
         if (_isAddressSearch)
           AddressSearchWidget(
             onLocationSelected: (Location location) {
@@ -78,6 +83,7 @@ class _AddressSelectionWidgetState extends State<AddressSelectionWidget> {
               widget.onLocationChanged?.call(location);
             },
           )
+        // Nếu chế độ chọn trên bản đồ, hiển thị nút mở màn hình chọn bản đồ
         else
           OutlinedButton.icon(
             onPressed: () async {
@@ -114,6 +120,7 @@ class _AddressSelectionWidgetState extends State<AddressSelectionWidget> {
             ),
           ),
         const SizedBox(height: 12),
+        // Hiển thị thông tin vị trí đã chọn nếu có
         if (storeViewModel.selectedLocation != null)
           Container(
             padding: const EdgeInsets.all(12),

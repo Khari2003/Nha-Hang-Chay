@@ -1,4 +1,3 @@
-// mapScreen.dart
 // ignore_for_file: file_names, library_private_types_in_public_api, depend_on_referenced_packages, use_build_context_synchronously, deprecated_member_use
 
 import 'dart:async';
@@ -30,7 +29,6 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
-    // final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     _startHideButtonsTimer();
   }
 
@@ -147,9 +145,41 @@ class _MapScreenState extends State<MapScreen> {
                                 viewModel: viewModel,
                                 onButtonPressed: _onButtonPressed,
                               ),
+                            Positioned(
+                              right: 0,
+                              top: MediaQuery.of(context).size.height / 2 - 50,
+                              child: Visibility(
+                                visible: areButtonsVisible,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.pushNamed(context, '/profile');
+                                    _onButtonPressed();
+                                  },
+                                  child: Container(
+                                    width: 50,
+                                    height: 100,
+                                    decoration: BoxDecoration(
+                                      color: appTheme().primaryColor,
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(50),
+                                        bottomLeft: Radius.circular(50),
+                                      ),
+                                      boxShadow: const [
+                                        BoxShadow(color: Colors.black26, blurRadius: 4),
+                                      ],
+                                    ),
+                                    child: const Icon(
+                                      Icons.person,
+                                      color: Colors.white,
+                                      size: 30,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
-                )
+                ),
               ),
             );
           },

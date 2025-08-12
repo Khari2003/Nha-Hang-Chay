@@ -6,8 +6,9 @@ import 'package:my_app/domain/entities/location.dart';
 import 'package:provider/provider.dart';
 import '../screens/store/storeViewModel.dart';
 
+// Widget tìm kiếm địa chỉ
 class AddressSearchWidget extends StatefulWidget {
-  final Function(Location) onLocationSelected;
+  final Function(Location) onLocationSelected; // Callback khi chọn vị trí
 
   const AddressSearchWidget({super.key, required this.onLocationSelected});
 
@@ -15,23 +16,25 @@ class AddressSearchWidget extends StatefulWidget {
   _AddressSearchWidgetState createState() => _AddressSearchWidgetState();
 }
 
+// Trạng thái của widget tìm kiếm địa chỉ
 class _AddressSearchWidgetState extends State<AddressSearchWidget> {
-  final TextEditingController _searchController = TextEditingController();
-  List<Map<String, String>> _searchResults = [];
+  final TextEditingController _searchController = TextEditingController(); // Controller cho ô tìm kiếm
+  List<Map<String, String>> _searchResults = []; // Danh sách kết quả tìm kiếm
 
   @override
   void dispose() {
-    _searchController.dispose();
+    _searchController.dispose(); // Giải phóng controller khi widget bị hủy
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<StoreViewModel>(context);
+    final viewModel = Provider.of<StoreViewModel>(context); // Lấy StoreViewModel từ Provider
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Ô nhập tìm kiếm địa chỉ
         TextFormField(
           controller: _searchController,
           decoration: InputDecoration(
@@ -72,6 +75,7 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
           },
         ),
         const SizedBox(height: 8),
+        // Hiển thị danh sách kết quả tìm kiếm nếu có
         if (_searchResults.isNotEmpty)
           Container(
             constraints: const BoxConstraints(maxHeight: 200),

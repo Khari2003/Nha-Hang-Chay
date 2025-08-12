@@ -37,53 +37,47 @@ import 'package:my_app/presentation/screens/map/mapViewModel.dart';
 import 'package:my_app/presentation/screens/review/reviewViewModel.dart';
 import 'package:my_app/presentation/screens/search/searchPlacesViewModel.dart';
 import 'package:my_app/presentation/screens/store/storeViewModel.dart';
+import 'package:my_app/presentation/screens/profile/profileModelView.dart';
 
-// Khởi tạo GetIt instance để quản lý dependency injection
 final sl = GetIt.instance;
 
-// Hàm khởi tạo các dependency
 Future<void> init() async {
   // --- External ---
-  // Đăng ký các thư viện hoặc dịch vụ bên ngoài
-  sl.registerLazySingleton(() => http.Client()); // HTTP client cho các yêu cầu API
+  sl.registerLazySingleton(() => http.Client());
 
   // --- Data Sources ---
-  // Đăng ký các data source để tương tác với API hoặc dữ liệu cục bộ
-  sl.registerLazySingleton<AuthDataSource>(() => AuthDataSourceImpl(sl())); // Data source cho xác thực
-  sl.registerLazySingleton<CoordinateDataSource>(() => CoordinateDataSourceImpl()); // Data source cho tọa độ
-  sl.registerLazySingleton<OSMDataSource>(() => OSMDataSourceImpl()); // Data source cho OpenStreetMap
-  sl.registerLazySingleton<ReviewDataSource>(() => ReviewDataSourceImpl(sl())); // Data source cho đánh giá
-  sl.registerLazySingleton<RouteDataSource>(() => RouteDataSourceImpl()); // Data source cho định tuyến
-  sl.registerLazySingleton<StoreDataSource>(() => StoreDataSourceImpl(sl())); // Data source cho cửa hàng
+  sl.registerLazySingleton<AuthDataSource>(() => AuthDataSourceImpl(sl()));
+  sl.registerLazySingleton<CoordinateDataSource>(() => CoordinateDataSourceImpl());
+  sl.registerLazySingleton<OSMDataSource>(() => OSMDataSourceImpl());
+  sl.registerLazySingleton<ReviewDataSource>(() => ReviewDataSourceImpl(sl()));
+  sl.registerLazySingleton<RouteDataSource>(() => RouteDataSourceImpl());
+  sl.registerLazySingleton<StoreDataSource>(() => StoreDataSourceImpl(sl()));
 
   // --- Repositories ---
-  // Đăng ký các repository để xử lý logic nghiệp vụ
-  sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl())); // Repository cho xác thực
-  sl.registerLazySingleton<CoordinateRepository>(() => CoordinateRepositoryImpl(sl())); // Repository cho tọa độ
-  sl.registerLazySingleton<OSMRepository>(() => OSMRepositoryImpl(sl())); // Repository cho OpenStreetMap
-  sl.registerLazySingleton<ReviewRepository>(() => ReviewRepositoryImpl(dataSource: sl())); // Repository cho đánh giá
-  sl.registerLazySingleton<RouteRepository>(() => RouteRepositoryImpl(sl())); // Repository cho định tuyến
-  sl.registerLazySingleton<StoreRepository>(() => StoreRepositoryImpl(sl())); // Repository cho cửa hàng
+  sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl()));
+  sl.registerLazySingleton<CoordinateRepository>(() => CoordinateRepositoryImpl(sl()));
+  sl.registerLazySingleton<OSMRepository>(() => OSMRepositoryImpl(sl()));
+  sl.registerLazySingleton<ReviewRepository>(() => ReviewRepositoryImpl(dataSource: sl()));
+  sl.registerLazySingleton<RouteRepository>(() => RouteRepositoryImpl(sl()));
+  sl.registerLazySingleton<StoreRepository>(() => StoreRepositoryImpl(sl()));
 
   // --- Use Cases ---
-  // Đăng ký các use case để thực hiện các tác vụ cụ thể
-  sl.registerLazySingleton(() => CreateStore(sl())); // Tạo cửa hàng mới
-  sl.registerLazySingleton(() => DeleteStore(sl())); // Xóa cửa hàng
-  sl.registerLazySingleton(() => ForgotPassword(sl())); // Quên mật khẩu
-  sl.registerLazySingleton(() => GetCurrentLocation(sl())); // Lấy vị trí hiện tại
-  sl.registerLazySingleton(() => GetRoute(sl())); // Lấy thông tin định tuyến
-  sl.registerLazySingleton(() => GetStoreReviews(sl())); // Lấy danh sách đánh giá của cửa hàng
-  sl.registerLazySingleton(() => LeaveReview(sl())); // Gửi đánh giá mới
-  sl.registerLazySingleton(() => Login(sl())); // Đăng nhập
-  sl.registerLazySingleton(() => Register(sl())); // Đăng ký
-  sl.registerLazySingleton(() => ResetPassword(sl())); // Đặt lại mật khẩu
-  sl.registerLazySingleton(() => SearchPlaces(sl())); // Tìm kiếm địa điểm
-  sl.registerLazySingleton(() => UpdateStore(sl())); // Cập nhật cửa hàng
-  sl.registerLazySingleton(() => VerifyOtp(sl())); // Xác minh OTP
-  sl.registerLazySingleton(() => GetStores(sl())); // Lấy danh sách cửa hàng
+  sl.registerLazySingleton(() => CreateStore(sl()));
+  sl.registerLazySingleton(() => DeleteStore(sl()));
+  sl.registerLazySingleton(() => ForgotPassword(sl()));
+  sl.registerLazySingleton(() => GetCurrentLocation(sl()));
+  sl.registerLazySingleton(() => GetRoute(sl()));
+  sl.registerLazySingleton(() => GetStoreReviews(sl()));
+  sl.registerLazySingleton(() => LeaveReview(sl()));
+  sl.registerLazySingleton(() => Login(sl()));
+  sl.registerLazySingleton(() => Register(sl()));
+  sl.registerLazySingleton(() => ResetPassword(sl()));
+  sl.registerLazySingleton(() => SearchPlaces(sl()));
+  sl.registerLazySingleton(() => UpdateStore(sl()));
+  sl.registerLazySingleton(() => VerifyOtp(sl()));
+  sl.registerLazySingleton(() => GetStores(sl()));
 
   // --- View Models ---
-  // Đăng ký các view model để quản lý logic giao diện
   sl.registerSingleton<AuthViewModel>(
     AuthViewModel(
       loginUseCase: sl(),
@@ -92,17 +86,17 @@ Future<void> init() async {
       verifyOtpUseCase: sl(),
       resetPasswordUseCase: sl(),
     ),
-  ); // View model cho xác thực (singleton)
+  );
   sl.registerFactory(() => MapViewModel(
         getCurrentLocation: sl(),
         getStores: sl(),
         getRoute: sl(),
-      )); // View model cho bản đồ
+      ));
   sl.registerFactory(() => ReviewViewModel(
         leaveReview: sl(),
         getStoreReviews: sl(),
-      )); // View model cho đánh giá
-  sl.registerFactory(() => SearchPlacesViewModel(searchPlaces: sl())); // View model cho tìm kiếm địa điểm
+      ));
+  sl.registerFactory(() => SearchPlacesViewModel(searchPlaces: sl()));
   sl.registerFactory(() => StoreViewModel(
         createStoreUseCase: sl(),
         searchPlacesUseCase: sl(),
@@ -110,5 +104,6 @@ Future<void> init() async {
         getCurrentLocation: sl(),
         updateStoreUseCase: sl(),
         deleteStoreUseCase: sl(),
-      )); // View model cho cửa hàng
+      ));
+  sl.registerFactory(() => ProfileViewModel());
 }

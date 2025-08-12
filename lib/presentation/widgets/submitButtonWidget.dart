@@ -8,10 +8,11 @@ import 'package:my_app/presentation/screens/store/storeViewModel.dart';
 import 'package:my_app/presentation/widgets/storeFormWidget.dart';
 import 'package:provider/provider.dart';
 
+// Widget nút submit
 class SubmitButtonWidget extends StatelessWidget {
-  final VoidCallback? onPressed;
-  final String label;
-  final bool isLoading;
+  final VoidCallback? onPressed; // Callback tùy chỉnh khi nhấn
+  final String label; // Nhãn nút
+  final bool isLoading; // Trạng thái loading
 
   const SubmitButtonWidget({
     super.key,
@@ -22,10 +23,10 @@ class SubmitButtonWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final storeViewModel = Provider.of<StoreViewModel>(context);
-    final authViewModel = Provider.of<AuthViewModel>(context);
+    final storeViewModel = Provider.of<StoreViewModel>(context); // Lấy StoreViewModel
+    final authViewModel = Provider.of<AuthViewModel>(context); // Lấy AuthViewModel
 
-    // Default onPressed for creating a store if none provided
+    // Default onPressed cho việc tạo cửa hàng nếu không cung cấp
     final defaultOnPressed = onPressed ?? () async {
       final formState = storeFormKey.currentState;
       if (formState == null) {

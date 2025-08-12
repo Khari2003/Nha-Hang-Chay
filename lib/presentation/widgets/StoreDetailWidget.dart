@@ -147,25 +147,13 @@ class _StoreDetailWidgetState extends State<StoreDetailWidget> {
                       return Builder(
                         builder: (BuildContext context) {
                           return Container(
+                            width: MediaQuery.of(context).size.width,
                             margin: const EdgeInsets.symmetric(horizontal: 5.0),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12.0),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 8.0,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12.0),
-                              child: Image.network(
-                                url,
+                              image: DecorationImage(
+                                image: NetworkImage(url),
                                 fit: BoxFit.cover,
-                                width: double.infinity,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(Icons.error, size: 50.0, color: Colors.grey),
                               ),
                             ),
                           );
@@ -174,137 +162,141 @@ class _StoreDetailWidgetState extends State<StoreDetailWidget> {
                     }).toList(),
                   ),
                   const SizedBox(height: 8.0),
-                  // Hiển thị chỉ báo cho carousel
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: widget.imageURLs.asMap().entries.map((entry) {
                       return Container(
                         width: 8.0,
                         height: 8.0,
-                        margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                        margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: _currentImageIndex == entry.key
-                              ? Theme.of(context).colorScheme.primary // Màu cho ảnh hiện tại
-                              : Colors.grey.withOpacity(0.5), // Màu cho các ảnh khác
+                          color: (Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : Colors.black)
+                              .withOpacity(_currentImageIndex == entry.key ? 0.9 : 0.4),
                         ),
                       );
                     }).toList(),
                   ),
                 ],
-              )
-            else
-              const Center(
-                child: Text(
-                  'Không có ảnh để hiển thị',
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                    color: Colors.grey,
-                  ),
-                ),
               ),
             const SizedBox(height: 16.0),
             // Hiển thị thông tin loại cửa hàng
-            _buildInfoRow(context, 'Loại', _storeTypeLabels[widget.type] ?? widget.type, Icons.category, Colors.blue),
+            _buildInfoRow(
+              context,
+              'Loại',
+              _storeTypeLabels[widget.type] ?? widget.type,
+              Icons.category,
+              Colors.purple,
+            ),
             // Hiển thị thông tin thành phố
-            if (widget.city != null)
-              _buildInfoRow(context, 'Thành phố', widget.city!, Icons.location_city, Colors.purple),
+            _buildInfoRow(
+              context,
+              'Thành phố',
+              widget.city ?? 'Không xác định',
+              Icons.location_city,
+              Colors.blue,
+            ),
             // Hiển thị thông tin địa chỉ
-            if (widget.address != null)
-              _buildInfoRow(context, 'Địa chỉ', widget.address!, Icons.place, Colors.red),
+            _buildInfoRow(
+              context,
+              'Địa chỉ',
+              widget.address ?? 'Không xác định',
+              Icons.location_on,
+              Colors.red,
+            ),
             // Hiển thị thông tin mức giá
-            if (widget.priceRange != null)
-              _buildInfoRow(context, 'Mức giá', _priceRangeLabels[widget.priceRange] ?? widget.priceRange!, Icons.attach_money, Colors.green),
-            // Hiển thị thực đơn
-            if (widget.menu.isNotEmpty)
-              _buildMenuSection(context),
+            _buildInfoRow(
+              context,
+              'Mức giá',
+              _priceRangeLabels[widget.priceRange] ?? widget.priceRange ?? 'Không xác định',
+              Icons.attach_money,
+              Colors.green,
+            ),
             const SizedBox(height: 16.0),
-            // Nút điều hướng và chỉnh sửa (nếu là chủ hoặc admin)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 48,
-                    child: ElevatedButton.icon(
-                      onPressed: widget.coordinates != null ? widget.onGetDirections : null,
-                      icon: const Icon(Icons.directions, size: 20.0, color: Colors.white),
-                      label: const Text(
-                        'Chỉ đường',
-                        style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.w600),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
+            // Phần hiển thị thực đơn
+            _buildMenuSection(context),
+            const SizedBox(height: 16.0),
+            // Nút lấy chỉ đường
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: widget.onGetDirections,
+                icon: const Icon(Icons.directions, color: Colors.white),
+                label: const Text(
+                  'Lấy chỉ đường',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12.0),
+            // Nếu là chủ hoặc admin, hiển thị nút sửa
+            if (isOwnerOrAdmin)
+              Padding(
+                padding: const EdgeInsets.only(left: 12.0),
+                child: SizedBox(
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MultiProvider(
+                            providers: [
+                              ChangeNotifierProvider.value(value: Provider.of<StoreViewModel>(context)),
+                              Provider.value(value: Provider.of<UpdateStore>(context)),
+                              Provider.value(value: Provider.of<DeleteStore>(context)),
+                            ],
+                            child: EditStoreScreen(
+                              store: StoreModel(
+                                id: widget.id,
+                                name: widget.name,
+                                type: widget.type,
+                                description: null,
+                                location: Location(
+                                  address: widget.address,
+                                  city: widget.city,
+                                  coordinates: widget.coordinates,
+                                ),
+                                priceRange: widget.priceRange ?? 'Moderate',
+                                menu: widget.menu,
+                                images: widget.imageURLs,
+                                owner: widget.owner,
+                                reviews: [],
+                                isApproved: widget.isApproved,
+                                createdAt: DateTime.now(),
+                              ),
+                            ),
+                          ),
                         ),
-                        elevation: 4.0,
+                      );
+                    },
+                    icon: const Icon(Icons.edit, size: 20.0),
+                    label: const Text(
+                      'Sửa',
+                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w600),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+                      backgroundColor: Colors.indigo,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
                       ),
+                      elevation: 4.0,
                     ),
                   ),
                 ),
-                // Nút chỉnh sửa cửa hàng (chỉ hiển thị nếu là chủ hoặc admin)
-                if (isOwnerOrAdmin && widget.id != null)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 12.0),
-                    child: SizedBox(
-                      height: 48,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MultiProvider(
-                                providers: [
-                                  ChangeNotifierProvider.value(value: Provider.of<StoreViewModel>(context)),
-                                  Provider.value(value: Provider.of<UpdateStore>(context)),
-                                  Provider.value(value: Provider.of<DeleteStore>(context)),
-                                ],
-                                child: EditStoreScreen(
-                                  store: StoreModel(
-                                    id: widget.id,
-                                    name: widget.name,
-                                    type: widget.type,
-                                    description: null,
-                                    location: Location(
-                                      address: widget.address,
-                                      city: widget.city,
-                                      coordinates: widget.coordinates,
-                                    ),
-                                    priceRange: widget.priceRange ?? 'Moderate',
-                                    menu: widget.menu,
-                                    images: widget.imageURLs,
-                                    owner: widget.owner,
-                                    reviews: [],
-                                    isApproved: widget.isApproved,
-                                    createdAt: DateTime.now(),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.edit, size: 20.0),
-                        label: const Text(
-                          'Sửa',
-                          style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w600),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-                          backgroundColor: Colors.indigo,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          elevation: 4.0,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+              ),
           ],
         ),
       ),

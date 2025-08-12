@@ -5,12 +5,13 @@ import 'package:my_app/domain/entities/store.dart';
 import 'package:my_app/presentation/screens/store/storeViewModel.dart';
 import 'package:provider/provider.dart';
 
+// Widget form nhập thông tin cửa hàng
 class StoreFormWidget extends StatefulWidget {
-  final String? initialName;
-  final String? initialDescription;
-  final String? initialPriceRange;
-  final String? initialType;
-  final List<MenuItem>? initialMenu;
+  final String? initialName; // Tên ban đầu
+  final String? initialDescription; // Mô tả ban đầu
+  final String? initialPriceRange; // Mức giá ban đầu
+  final String? initialType; // Loại ban đầu
+  final List<MenuItem>? initialMenu; // Thực đơn ban đầu
 
   const StoreFormWidget({
     super.key,
@@ -25,13 +26,14 @@ class StoreFormWidget extends StatefulWidget {
   _StoreFormWidgetState createState() => _StoreFormWidgetState();
 }
 
+// Trạng thái của form cửa hàng
 class _StoreFormWidgetState extends State<StoreFormWidget> {
-  final _nameController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _priceRangeController = TextEditingController();
-  final _menuItemNameController = TextEditingController();
-  final _menuItemPriceController = TextEditingController();
-  String? _selectedType;
+  final _nameController = TextEditingController(); // Controller tên
+  final _descriptionController = TextEditingController(); // Controller mô tả
+  final _priceRangeController = TextEditingController(); // Controller mức giá
+  final _menuItemNameController = TextEditingController(); // Controller tên món
+  final _menuItemPriceController = TextEditingController(); // Controller giá món
+  String? _selectedType; // Loại cửa hàng được chọn
 
   final List<String> _storeTypes = [
     'chay-phat-giao',
@@ -40,9 +42,9 @@ class _StoreFormWidgetState extends State<StoreFormWidget> {
     'com-chay-binh-dan',
     'buffet-chay',
     'chay-ton-giao-khac',
-  ];
+  ]; // Danh sách loại cửa hàng
 
-  final List<String> _priceRanges = ['Low', 'Moderate', 'High'];
+  final List<String> _priceRanges = ['Low', 'Moderate', 'High']; // Danh sách mức giá
 
   final Map<String, String> _storeTypeLabels = {
     'chay-phat-giao': 'Chay Phật giáo',
@@ -51,13 +53,13 @@ class _StoreFormWidgetState extends State<StoreFormWidget> {
     'com-chay-binh-dan': 'Cơm chay bình dân',
     'buffet-chay': 'Buffet chay',
     'chay-ton-giao-khac': 'Chay tôn giáo khác',
-  };
+  }; // Nhãn loại cửa hàng
 
   final Map<String, String> _priceRangeLabels = {
     'Low': 'Thấp',
     'Moderate': 'Trung bình',
     'High': 'Cao',
-  };
+  }; // Nhãn mức giá
 
   @override
   void initState() {
@@ -92,6 +94,7 @@ class _StoreFormWidgetState extends State<StoreFormWidget> {
     setState(() {});
   }
 
+  // Thêm món vào thực đơn
   void _addMenuItem() {
     if (_menuItemNameController.text.isNotEmpty && _menuItemPriceController.text.isNotEmpty) {
       try {
@@ -121,6 +124,7 @@ class _StoreFormWidgetState extends State<StoreFormWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Ô nhập tên cửa hàng
         TextFormField(
           controller: _nameController,
           decoration: const InputDecoration(
@@ -130,6 +134,7 @@ class _StoreFormWidgetState extends State<StoreFormWidget> {
           validator: (value) => value!.isEmpty ? 'Vui lòng nhập tên cửa hàng' : null,
         ),
         const SizedBox(height: 16),
+        // Dropdown chọn loại cửa hàng
         DropdownButtonFormField<String>(
           value: _selectedType,
           decoration: const InputDecoration(
@@ -146,6 +151,7 @@ class _StoreFormWidgetState extends State<StoreFormWidget> {
           validator: (value) => value == null ? 'Vui lòng chọn loại cửa hàng' : null,
         ),
         const SizedBox(height: 16),
+        // Ô nhập mô tả
         TextFormField(
           controller: _descriptionController,
           decoration: const InputDecoration(
@@ -154,6 +160,7 @@ class _StoreFormWidgetState extends State<StoreFormWidget> {
           ),
         ),
         const SizedBox(height: 16),
+        // Dropdown chọn mức giá
         DropdownButtonFormField<String>(
           value: _priceRangeController.text.isNotEmpty &&
                   _priceRangeLabels.keys.contains(_priceRangeController.text)
@@ -186,6 +193,7 @@ class _StoreFormWidgetState extends State<StoreFormWidget> {
           ),
         ),
         const SizedBox(height: 8),
+        // Hàng thêm món ăn
         Row(
           children: [
             Expanded(
@@ -216,6 +224,7 @@ class _StoreFormWidgetState extends State<StoreFormWidget> {
           ],
         ),
         const SizedBox(height: 8),
+        // Danh sách món ăn đã thêm
         Consumer<StoreViewModel>(
           builder: (context, viewModel, child) {
             return Column(

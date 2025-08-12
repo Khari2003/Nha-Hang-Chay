@@ -141,8 +141,7 @@ class MapViewModel extends ChangeNotifier {
       );
 
       final matchesType = _selectedTypes.isEmpty || _selectedTypes.contains(store.type);
-      final matchesPriceRange =
-          _selectedPriceRanges.isEmpty || _selectedPriceRanges.contains(store.priceRange);
+      final matchesPriceRange = _selectedPriceRanges.isEmpty || _selectedPriceRanges.contains(store.priceRange);
 
       return distance <= _radius && matchesType && matchesPriceRange;
     }).toList();
@@ -266,11 +265,9 @@ class MapViewModel extends ChangeNotifier {
       _currentLocation = newLocation;
       _userHeading = position.heading;
 
-      if (_isNavigating) {
-        _mapController.move(newLocation.toLatLng(), 20.0);
-        await checkIfOnRoute(newLocation);
-        checkIfArrived(newLocation);
-      }
+      _mapController.move(newLocation.toLatLng(), 20.0);
+      await checkIfOnRoute(newLocation);
+      checkIfArrived(newLocation);
 
       notifyListeners();
     });

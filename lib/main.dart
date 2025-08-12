@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:my_app/data/models/storeModel.dart';
+import 'package:my_app/presentation/screens/profile/profileModelView.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'di/injectionContainer.dart' as di;
@@ -22,12 +23,13 @@ import 'presentation/screens/store/editStoreScreen.dart';
 import 'presentation/screens/auth/authViewModel.dart';
 import 'presentation/screens/search/searchPlacesViewModel.dart';
 import 'presentation/screens/store/storeViewModel.dart';
+import 'presentation/screens/profile/profileScreen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await di.init(); // Initialize dependency injection
+  await di.init();
   final authViewModel = di.sl<AuthViewModel>();
-  await authViewModel.loadUserData(); // Load user data once
+  await authViewModel.loadUserData();
   runApp(const MyApp());
 }
 
@@ -40,7 +42,7 @@ class MyApp extends StatelessWidget {
       final token = prefs.getString('accessToken');
       final rememberMe = prefs.getBool('rememberMe') ?? false;
       final authViewModel = di.sl<AuthViewModel>();
-      await authViewModel.verifyToken(); // Verify token
+      await authViewModel.verifyToken();
       if (token != null && rememberMe && authViewModel.auth != null) {
         return '/map';
       }
@@ -54,7 +56,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // Use the singleton instance of AuthViewModel
         ChangeNotifierProvider.value(value: di.sl<AuthViewModel>()),
         Provider<GetCurrentLocation>(create: (_) => di.sl<GetCurrentLocation>()),
         Provider<GetStores>(create: (_) => di.sl<GetStores>()),
@@ -63,6 +64,7 @@ class MyApp extends StatelessWidget {
         Provider<DeleteStore>(create: (_) => di.sl<DeleteStore>()),
         ChangeNotifierProvider(create: (_) => di.sl<SearchPlacesViewModel>()),
         ChangeNotifierProvider(create: (_) => di.sl<StoreViewModel>()),
+        ChangeNotifierProvider(create: (_) => di.sl<ProfileViewModel>()),
       ],
       child: MaterialApp(
         initialRoute: '/',
@@ -91,6 +93,7 @@ class MyApp extends StatelessWidget {
             final store = ModalRoute.of(context)!.settings.arguments as StoreModel;
             return EditStoreScreen(store: store);
           },
+          '/profile': (context) => const ProfileScreen(),
         },
       ),
     );

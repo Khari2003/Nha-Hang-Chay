@@ -7,6 +7,7 @@ import '../../../data/datasources/osm/osmDatasource.dart';
 import 'dart:convert';
 import 'package:my_app/domain/entities/searchResult.dart';
 
+// Widget tìm kiếm địa điểm sử dụng OSM
 class SearchPlaces extends StatefulWidget {
   const SearchPlaces({super.key});
 
@@ -14,13 +15,14 @@ class SearchPlaces extends StatefulWidget {
   _SearchPlacesState createState() => _SearchPlacesState();
 }
 
+// Trạng thái của widget tìm kiếm địa điểm
 class _SearchPlacesState extends State<SearchPlaces> {
-  final TextEditingController _controller = TextEditingController();
-  List<SearchResult> _suggestions = [];
-  List<SearchResult> _exactSuggestions = [];
-  List<SearchResult> _regionSuggestions = [];
-  Timer? _debounce;
-  String _searchMode = "exact"; // "exact" hoặc "region"
+  final TextEditingController _controller = TextEditingController(); // Controller ô tìm kiếm
+  List<SearchResult> _suggestions = []; // Gợi ý tổng hợp
+  List<SearchResult> _exactSuggestions = []; // Gợi ý tìm chính xác
+  List<SearchResult> _regionSuggestions = []; // Gợi ý tìm theo vùng
+  Timer? _debounce; // Timer debounce cho tìm kiếm
+  String _searchMode = "exact"; // Chế độ tìm kiếm: "exact" hoặc "region"
 
   // Biến lưu dữ liệu từ file JSON
   Map<String, dynamic> locationData = {};
@@ -48,6 +50,7 @@ class _SearchPlacesState extends State<SearchPlaces> {
     }
   }
 
+  // Hàm xử lý thay đổi tìm kiếm (debounce)
   void _onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
@@ -139,6 +142,7 @@ class _SearchPlacesState extends State<SearchPlaces> {
     }
   }
 
+  // Cập nhật gợi ý tổng hợp
   void _updateSuggestions() {
     setState(() {
       _suggestions = [..._exactSuggestions, ..._regionSuggestions];
